@@ -1,82 +1,107 @@
-# Lovrabet CLI Skill
+# Lovrabet CLI
 
-面向 [skills](https://www.npmjs.com/package/skills) 开放生态的 **Lovrabet Runtime CLI** Agent Skill 发布仓库。
+[Lovrabet](https://www.lovrabet.com)（中文名云兔）是企业级 AI-Native 业务系统生成平台。`lovrabet` 是它的运行态 CLI，面向业务人员、交付实施、集成开发者和 AI 助手，提供应用切换、数据集发现、数据查询与写入、SQL 执行、BFF 调用等能力。
 
-[Lovrabet](https://www.lovrabet.com)（中文名云兔）是企业级 AI-Native 业务系统生成平台。**Lovrabet Runtime CLI** 提供运行态数据查询、数据 CRUD、SQL 执行与 BFF 调用能力，让业务人员、集成开发者和 AI 助手可以直接在终端里访问应用真实数据与运行能力。
+这个仓库同时提供两部分内容：
 
-## 为什么需要这个 Skill
+* `lovrabet` CLI 的公开安装入口
+* 面向 AI IDE / Agent 的 `lovrabet` Skill 安装源
 
-在运行态场景里，AI 助手不仅要“调用一个命令”，还要理解：
+## 安装步骤
 
-* 当前应用如何决议
-* `dataset detail` 和 `data filter/getOne` 的使用顺序
-* `data / sql / bff` 的不同边界
-* Access Key、配置作用域和风险控制
-* 结构化输出、`--format compress` 与 `--jq` 的正确用法
+### 1. 安装 Lovrabet CLI
 
-这个 Skill 把这些运行态工作流和约束固化下来，避免 AI 助手在真实项目里乱猜应用、乱猜字段、或错误使用写命令。
+```bash
+npm install -g @lovrabet/lovrabet-cli@latest
+```
 
-## 安装
+安装完成后，可先验证版本和帮助信息：
 
-推荐在项目根目录使用 `skills` CLI 安装：
+```bash
+lovrabet --version
+lovrabet --help
+```
+
+### 2. 安装 Lovrabet Skill
+
+如果你在 Cursor、Claude Code、Codex、Windsurf 等支持 `skills` 的 AI 开发环境中使用 Lovrabet，推荐继续安装 Skill：
 
 ```bash
 npx skills add lovrabet/lovrabet-cli -g -y
 ```
 
-安装后，Skill 位于 `skills/lovrabet/` 下，遵循标准技能包结构。
+Skill 会把 Lovrabet 的命令使用顺序、应用决议规则、真实查数方法、风险边界和排障经验提供给 AI 助手，减少乱猜 app、乱猜字段、误用写命令的问题。
 
-## 前置条件
-
-使用 Skill 前，确保已安装 `lovrabet` CLI：
-
-```bash
-npm install -g @lovrabet/lovrabet-cli
-```
-
-并完成认证与应用配置：
+### 3. 登录并开始使用
 
 ```bash
 lovrabet auth login
 lovrabet app list
 ```
 
-如需固定当前项目的默认应用，再执行：
+如需在当前项目固定默认应用：
 
 ```bash
 lovrabet app init --appcode <code>
 ```
 
+## CLI 能做什么
+
+Lovrabet CLI 主要覆盖这些运行态场景：
+
+* 应用目录与默认应用切换
+* 数据集发现与字段结构查看
+* `data filter`、`data getOne`、`data aggregate` 等真实查数能力
+* `data create`、`update`、`delete` 等数据修正能力
+* `sql exec` 的只读查询与校验
+* `bff exec` 的运行态函数联调
+
+对于做业务排查、交付联调、数据核对、补数修数、接口验证，CLI 通常比进后台点页面更直接。
+
+## 推荐上手顺序
+
+```bash
+npm install -g @lovrabet/lovrabet-cli@latest
+npx skills add lovrabet/lovrabet-cli -g -y
+lovrabet auth login
+lovrabet app list
+lovrabet dataset list --name 客户
+lovrabet dataset detail --code <datasetCode>
+lovrabet data filter --code <datasetCode> --params '{"currentPage":1,"pageSize":20}'
+```
+
+如果要让 AI 助手帮你生成页面、排查字段格式、判断枚举/日期/数组/JSON 的真实结构，优先先跑 `dataset detail`，再跑 `data filter` 或 `data getOne` 看真实返回。
+
+## Skill 适合什么场景
+
+安装 Skill 后，AI 助手更适合处理这些任务：
+
+* 先找正确的 app，再定位 dataset 和字段
+* 用真实数据判断枚举、日期、数组、JSON、空值和 `_label` 字段格式
+* 区分 `dataset`、`data`、`sql`、`bff` 的职责边界
+* 按 Lovrabet CLI 既有约束生成更稳妥的命令和排障步骤
+
 ## 仓库结构
 
 ```text
-README.md           ← 本说明
+README.md
 LICENSE
+NOTICE
 skills/lovrabet/
-  SKILL.md          ← Skill 入口（意图路由 + 命令索引 + Agent 规则）
-  references/       ← 命令参考文档
-  guides/           ← 运行态工作流与排障指南
+  SKILL.md
+  references/
+  guides/
 ```
-
-## 适用场景
-
-如果你在做这些事情，这个 Skill 会特别有帮助：
-
-* 在多应用上下文中找到正确的 app、dataset 和数据记录
-* 用 `data filter` / `data getOne` 查看真实数据结构
-* 用 `sql exec` 执行只读查询
-* 用 `bff exec` 调试运行态函数
-* 让 AI 助手按照 Lovrabet 运行态约束生成更稳妥的操作步骤
 
 ## 进一步了解
 
 * 官网：[www.lovrabet.com](https://www.lovrabet.com)
 * 开发文档：[open.lovrabet.com](https://open.lovrabet.com/)
-* CLI 文档：`lovrabet --help`
-* Skill 详细说明：[`skills/lovrabet/SKILL.md`](skills/lovrabet/SKILL.md)
+* CLI 帮助：`lovrabet --help`
+* Skill 说明：[`skills/lovrabet/SKILL.md`](skills/lovrabet/SKILL.md)
 
 ## License
 
-Licensed under [Apache-2.0](LICENSE). Redistributions and derivative works
-must retain the original copyright, license, and attribution notices required
-by the Apache License.
+Licensed under [Apache-2.0](LICENSE). Redistributions and derivative works must
+retain the original copyright, license, and attribution notices required by the
+Apache License.
