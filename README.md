@@ -21,7 +21,7 @@
 推荐在项目根目录使用 `skills` CLI 安装：
 
 ```bash
-npx skills add lovrabet/lovrabet-cli
+npx skills add lovrabet/lovrabet-cli -g -y
 ```
 
 安装后，Skill 位于 `skills/lovrabet/` 下，遵循标准技能包结构。
@@ -77,4 +77,6 @@ skills/lovrabet/
 
 ## License
 
-[MIT](LICENSE)
+Licensed under [Apache-2.0](LICENSE). Redistributions and derivative works
+must retain the original copyright, license, and attribution notices required
+by the Apache License.

@@ -147,6 +147,7 @@ npm install -g @lovrabet/lovrabet-cli
 | **config** | `get` | 读取配置项 | read | — |
 | **config** | `set` | 写入配置项 | write | — |
 | **config** | `delete` | 删除配置项 | write | — |
+| **skill** | `install` | 全局安装官方运行态 Skill | write | — |
 | **dataset** | `list` | 列出数据集（含字段列表） | read | **是** |
 | **dataset** | `detail` | 查看数据集结构 | read | **是** |
 | **data** | `filter` | 按条件查询数据记录 | read | — |
@@ -168,6 +169,7 @@ npm install -g @lovrabet/lovrabet-cli
 
 | 意图 | 命令 |
 |------|------|
+| 安装 / 刷新 Skill | `lovrabet skill install` |
 | 初始化配置 | `lovrabet app init --appcode <code> [--env daily] [--global]` |
 | 从升级后的 rb 配置导入 | `lovrabet app import --file /path/to/.rabetbase.json` |
 | 登录 | `lovrabet auth login` |
