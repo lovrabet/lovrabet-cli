@@ -1,0 +1,127 @@
+# Dataset Discovery Workflow
+
+## 概述
+
+在执行数据操作前，需要先找到目标数据集并了解其字段结构。
+
+## 先不要默认查 app
+
+`dataset` 工作流的第一步不是固定的 `app list`，而是先判断当前是否已经有明确 app 上下文。
+
+### 直接进入数据集发现
+
+以下情况可以直接执行 `dataset list`：
+
+- 用户已经给了 `--appcode`
+- 用户已经给了 `--app <name>`
+- 当前配置已有明确 `defaultApp`
+- 当前问题明显是在“当前项目 / 当前默认应用”里继续操作
+
+### 需要先做应用决议
+
+以下情况应先获取应用信息，再决定目标 app：
+
+- 用户只说了业务需求，没有给 app 线索
+- 当前没有 `defaultApp`
+- 需求描述可能对应多个业务应用
+
+推荐先执行：
+
+```bash
+lovrabet app list
+```
+
+再根据业务关键词挑 1-2 个候选应用，执行：
+
+```bash
+lovrabet dataset list --app <name> --name "<关键词>"
+```
+
+通过数据集命中结果反向确认 app，而不是只看 app 名称猜测。
+
+## 命令
+
+### dataset list — 列出数据集
+
+```bash
+# 列出全部
+lovrabet dataset list
+
+# 按名称过滤（服务端模糊匹配）
+lovrabet dataset list --name "订单"
+
+# 按 code 过滤（服务端精确匹配）
+lovrabet dataset list --code "abc123def4567890abcdef012345678"
+
+# JSON 格式输出（AI Agent 推荐）
+lovrabet dataset list --format json
+```
+
+返回字段: id, code, name, source, description, table, datasetKey, pk, **fields**
+
+其中 `fields` 是从 `dbtableConfig.allFields` 解析出的字段名数组，可直接用于构造 `data filter` 的 `select` 和 `where` 参数，无需再调 `dataset detail`。
+
+| Flag | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `--name` | string | 否 | 按名称模糊过滤（服务端） |
+| `--code` | string | 否 | 按 dataset code 精确过滤（服务端，32 位 hex） |
+| `--format` | string | 否 | 输出格式：`json` / `pretty` / `table` |
+
+### dataset detail — 查看数据集结构
+
+```bash
+lovrabet dataset detail --code <datasetCode>
+
+# 返回原始完整 API 响应
+lovrabet dataset detail --code <datasetCode> --verbose
+```
+
+| Flag | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `--code` | string | **是** | 数据集 code（32 位 hex UUID） |
+| `--verbose` | boolean | 否 | 返回完整原始对象 |
+
+返回内容:
+- **字段列表** — name, displayName, type, dbType, pk, required, description, options
+- **操作列表** — name, method, path（getList, getOne, create, update, delete 等）
+- **统计** — fieldCount, operationCount
+
+## 典型工作流
+
+```bash
+# 0. 如果当前 app 不明确，先看应用目录
+lovrabet app list
+
+# 1. 在候选 app 中搜索数据集
+lovrabet dataset list --app crm --name "公司"
+
+# 2. 命中后查看字段结构
+lovrabet dataset detail --code 2874b19935c240659e8872e9e2416ae3
+
+# 3. 确认字段名后，开始数据操作
+lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
+  --params '{"where":{"name":{"$contain":"test"}},"currentPage":1,"pageSize":20}'
+```
+
+如果当前 app 已明确，则直接：
+
+```bash
+# 1. 搜索数据集
+lovrabet dataset list --name "公司"
+
+# 2. list 已返回 fields 数组，可直接用于构造查询
+#    如果需要字段类型等详细信息，再调 detail
+lovrabet dataset detail --code 2874b19935c240659e8872e9e2416ae3
+
+# 3. 确认字段名后，开始数据操作
+lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
+  --params '{"where":{"name":{"$contain":"test"}},"currentPage":1,"pageSize":20}'
+```
+
+## 注意事项
+
+1. 使用 `--format json` 获取结构化输出，便于程序解析
+2. `dataset list` 返回的 `fields` 数组包含所有字段名，多数场景下无需额外调 `detail`
+3. `dataset detail` 返回的字段兼容 v1（properties）和 v2（fields）两种数据集格式
+4. 数据集的 code 是 32 位 hex UUID，是所有 `data *` 命令的必填参数
+5. 当业务需求不明确落在哪个 app 时，先 `app list`，再用 `dataset list --app <name> --name <关键词>` 做验证式收敛

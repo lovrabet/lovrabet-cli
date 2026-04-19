@@ -1,0 +1,122 @@
+# `.lovrabet.json` 配置参考
+
+`.lovrabet.json` 现在只承载**用户意图配置**，不再承载平台应用目录。
+
+这意味着：
+- `accessKey` / `env` / `format` / `riskLevel` / `defaultApp` 等仍然放在 `.lovrabet.json`
+- 当前 AK 在平台上可见的应用列表，放在 `~/.lovrabet/cache/.../my-apps.json`
+
+兼容旧名：`.lovrabetrc`（优先级 `.lovrabet.json` > `.lovrabetrc`）。
+
+## 单应用模式
+
+```json
+{
+  "appcode": "app-xxxxxxxx",
+  "env": "daily",
+  "accessKey": "ak_xxx"
+}
+```
+
+## 默认应用模式
+
+```json
+{
+  "accessKey": "ak_xxx",
+  "env": "daily",
+  "defaultApp": "crm"
+}
+```
+
+`defaultApp` 现在只表示“默认使用哪个远端应用名”。真正的应用目录来自 cache / remote，不再在本地维护 `apps.*` overrides。
+
+## app cache
+
+平台应用列表缓存路径：
+
+```text
+~/.lovrabet/cache/<env>/<ak-fingerprint>/my-apps.json
+```
+
+这个 cache 由以下命令维护：
+- `lovrabet app list`
+- `lovrabet app list --no-cache`
+- `lovrabet app pull`
+
+## 顶层字段
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `appcode` | string | — | 兼容单应用模式，直接指定 appcode |
+| `env` | string | `production` | 环境：`production` / `development` / `daily` |
+| `accessKey` | string | — | User Access Key（client-ak） |
+| `format` | string | — | 默认输出格式：`json` / `pretty` / `compress` |
+| `pageSize` | number | — | 默认分页大小 |
+| `riskLevel` | string | `write` | 允许执行的最高风险等级 |
+| `defaultApp` | string | — | 默认应用名称 |
+| `inherit` | boolean | true | 项目配置是否继承全局配置 |
+
+## 解析优先级
+
+```
+CLI flag (--appcode, --env, --format, --app ...)
+  ↓
+环境变量 (LOVRABET_APPCODE, LOVRABET_ENV ...)
+  ↓
+项目级 .lovrabet.json
+  ↓
+全局级 ~/.lovrabet.json
+  ↓
+内置默认值
+```
+
+## 关于 `defaultApp`
+
+`defaultApp` 仍然是本地配置的核心字段，但它现在只表示远端应用名称。
+
+所以：
+- `app use <name>` 可以只写 `defaultApp`
+- 运行时通过 cache 解析对应 `appcode`
+
+## 环境变量
+
+| 环境变量 | 对应字段 |
+|----------|----------|
+| `LOVRABET_APPCODE` | `appcode` |
+| `LOVRABET_ENV` | `env` |
+| `LOVRABET_ACCESS_KEY` | `accessKey` |
+| `LOVRABET_FORMAT` | `format` |
+| `LOVRABET_PAGE_SIZE` | `pageSize` |
+| `LOVRABET_VERBOSE` | verbose |
+| `LOVRABET_APP` | 当前应用名 |
+
+## 查找与合并
+
+| 作用域 | 查找目录 | 文件名优先级 |
+|--------|---------|------------|
+| 项目级 | `process.cwd()` | `.lovrabet.json` > `.lovrabetrc` |
+| 全局级 | `~` | 同上 |
+
+合并策略：
+- 标量字段：项目级覆盖全局级
+- `defaultApp`：项目级显式声明 > 全局 `defaultApp`
+
+## 示例
+
+### 全局 AK + 默认应用
+
+```json
+{
+  "accessKey": "ak-xxxxxxxxxxxx",
+  "env": "daily",
+  "defaultApp": "crm"
+}
+```
+
+### 项目级默认应用
+
+```json
+{
+  "defaultApp": "crm"
+}
+```
