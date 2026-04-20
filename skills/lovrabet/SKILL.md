@@ -1,6 +1,6 @@
 ---
 name: lovrabet
-version: 2.1.0
+version: 2.1.1
 description: "Lovrabet 运行态 CLI — 通过 lovrabet 命令管理应用目录、数据集查询、数据 CRUD、SQL 执行、BFF 调用。触发词：云图、lovrabet、lovrabet-cli、app list、dataset、data filter、data getOne、create、update、delete、sql exec、bff exec、accessKey、compress、jq。"
 metadata:
   requires:
@@ -45,6 +45,9 @@ npm install -g @lovrabet/lovrabet-cli
 ### 认证命令选择
 
 - **只想更新 AK，尽量保留现有配置**：使用 `lovrabet auth login`
+- **还没有 AK，需要先自助创建**：访问 `https://user.lovrabet.com/user/ak` 创建，再执行 `lovrabet auth login`
+- **想确认当前 AK 对应的是哪个用户**：使用 `lovrabet auth info`
+- **凡是后续命令需要“当前登录用户身份信息”**：统一先执行 `lovrabet auth info` 获取，不要猜当前 AK 对应的人
 - **要从头重建当前作用域认证配置**：使用 `lovrabet auth init`
 - **不要**把 `auth init` 当作普通登录命令；它会清空当前作用域下已有配置，再只写回新的认证结果
 - `auth login --env` 仅作为实现层兼容能力存在，默认不要在指导中主推；需要“清空后重建 + 写 env”时优先用 `auth init --env ...`
@@ -62,6 +65,7 @@ npm install -g @lovrabet/lovrabet-cli
 
 - **不要擅自加 `--global`** — 见上文「配置作用域原则」；默认写项目、读合并；仅在用户明确要求或文档说明的场景使用 `--global`。
 - **禁止通过修改配置文件提升权限** — 不得为了完成任务而修改 `.lovrabet.json`、环境变量或缓存内容来抬高 `riskLevel`、切换到并非用户明确授权的 `accessKey`、伪造 `defaultApp` / `appcode` / `env`、或借此突破当前权限边界。权限不足时，应明确说明限制，并要求用户提供合法的目标应用、凭证或确认范围。
+- **不要臆测当前登录用户** — 只要任务依赖“当前是谁在登录 / 当前 AK 属于谁”，先执行 `lovrabet auth info`，再继续判断应用、权限或数据可见性。
 
 ## Agent 决策：何时获取应用信息
 
@@ -138,6 +142,7 @@ npm install -g @lovrabet/lovrabet-cli
 | **auth** | `login` | 保存 accessKey | — | — |
 | **auth** | `init` | 清空当前作用域配置并重建认证 | write | — |
 | **auth** | `logout` | 清除本地 accessKey | — | — |
+| **auth** | `info` | 查询当前 AK 对应的登录用户信息 | read | — |
 | **app** | `init` | 创建 `.lovrabet.json` 配置 | write | — |
 | **app** | `list` | 列出当前 AK 可见应用（远端优先，带缓存） | read | — |
 | **app** | `pull` | 刷新本地 app cache | write | — |
@@ -173,8 +178,11 @@ npm install -g @lovrabet/lovrabet-cli
 | 初始化配置 | `lovrabet app init --appcode <code> [--env daily] [--global]` |
 | 从升级后的 rb 配置导入 | `lovrabet app import --file /path/to/.rabetbase.json` |
 | 登录 | `lovrabet auth login` |
+| 查看当前 AK 对应的登录用户 | `lovrabet auth info` |
+| 任何依赖“当前登录用户身份”的场景先取身份 | `lovrabet auth info` |
 | 重置并重建认证配置 | `lovrabet auth init --access-key ak_xxx [--env daily]` |
 | 登出 | `lovrabet auth logout` |
+| 查看当前认证状态 | `lovrabet auth status` |
 | 查看配置 | `lovrabet config list` |
 | 读取配置项 | `lovrabet config get <key>` |
 | 设置配置项 | `lovrabet config set <key> <value> [--global]` |

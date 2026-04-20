@@ -14,11 +14,18 @@ lovrabet auth login --project
 **行为**：
 - 默认写入全局配置 `~/.lovrabet.json`
 - 显式 `--project` 才写项目配置
-- 交互模式下，不传 `--access-key` 会提示输入 AK
+- 交互模式下，不传 `--access-key` 会提示输入 AK，并提示先到 `https://user.lovrabet.com/user/ak` 自助创建
+- 也可以直接显式传入：`lovrabet auth login --access-key <ak_xxx>`
 
 **适用场景**：
 - 想替换当前 AK，但尽量保留已有 `defaultApp`、`format`、`pageSize`、域名覆盖等配置
 - 不希望破坏当前作用域里的其他用户意图配置
+
+**推荐顺序**：
+
+1. 先到 `https://user.lovrabet.com/user/ak` 创建 AccessKey
+2. 执行 `lovrabet auth login`
+3. 再执行 `lovrabet auth info`，确认当前 AK 对应的是预期用户
 
 ## auth init — 清空并重建当前作用域认证配置
 
@@ -62,6 +69,39 @@ lovrabet auth status
 - 当前是否已配置 accessKey
 - accessKey 来源（global / project / env）
 - 当前 env
+
+## auth info — 查看当前 AK 对应的登录用户
+
+```bash
+lovrabet auth info
+lovrabet auth info --env daily
+```
+
+会调用：
+
+```text
+GET /client/user/loginUserInfo
+X-User-AK: <current accessKey>
+```
+
+会返回：
+
+- 当前 AccessKey 对应的登录用户信息
+- 常见字段如 `id`、`userName`、`loginName`、`tenantCode`
+- `meta.env`，方便确认当前请求落在哪个环境
+
+**适用场景**：
+
+- 你刚切换了 AK，想确认当前命令实际在用谁的身份
+- 同一台机器上多人轮流调试，怀疑当前 AK 不是自己的
+- 业务命令能执行，但结果明显不像预期，需要先确认身份再继续排查
+- 后续任何命令需要“当前登录用户身份信息”作为判断条件时，先执行这一条
+
+**Agent 规则**：
+
+- 不要凭 `defaultApp`、缓存内容或最近一次登录记录去猜当前登录用户
+- 遇到“当前用户是谁 / 当前 AK 属于谁 / 当前人是否有权限看到这些应用或数据”这类问题，统一先调 `lovrabet auth info`
+- 先拿到身份，再继续做 app 决议、权限判断、结果解释或排障
 
 ## 认证优先级
 
