@@ -5,6 +5,7 @@
 这意味着：
 - `accessKey` / `env` / `format` / `riskLevel` / `defaultApp` 等仍然放在 `.lovrabet.json`
 - 当前 AK 在平台上可见的应用列表，放在 `~/.lovrabet/cache/.../my-apps.json`
+- 常规使用不需要先创建本地配置文件；登录后可以直接 `app list` 并通过 `--app` / `--appcode` 操作
 
 兼容旧名：`.lovrabetrc`（优先级 `.lovrabet.json` > `.lovrabetrc`）。
 
@@ -54,7 +55,7 @@
 | `pageSize` | number | — | 默认分页大小 |
 | `riskLevel` | string | `write` | 允许执行的最高风险等级 |
 | `defaultApp` | string | — | 默认候选应用名称 |
-| `inherit` | boolean | true | 项目配置是否继承全局配置 |
+| `inherit` | boolean | true | 当前目录配置是否继承全局配置 |
 
 ## 解析优先级
 
@@ -63,7 +64,7 @@ CLI flag (--appcode, --env, --format, --app ...)
   ↓
 环境变量 (LOVRABET_APPCODE, LOVRABET_ENV ...)
   ↓
-项目级 .lovrabet.json
+当前目录 .lovrabet.json（兼容本地配置）
   ↓
 全局级 ~/.lovrabet.json
   ↓
@@ -95,12 +96,12 @@ CLI flag (--appcode, --env, --format, --app ...)
 
 | 作用域 | 查找目录 | 文件名优先级 |
 |--------|---------|------------|
-| 项目级 | `process.cwd()` | `.lovrabet.json` > `.lovrabetrc` |
+| 当前目录 | `process.cwd()` | `.lovrabet.json` > `.lovrabetrc` |
 | 全局级 | `~` | 同上 |
 
 合并策略：
-- 标量字段：项目级覆盖全局级
-- `defaultApp`：项目级显式声明 > 全局 `defaultApp`
+- 标量字段：当前目录配置覆盖全局级
+- `defaultApp`：当前目录显式声明 > 全局 `defaultApp`
 
 ## 示例
 
@@ -114,7 +115,7 @@ CLI flag (--appcode, --env, --format, --app ...)
 }
 ```
 
-### 项目级默认应用
+### 当前目录默认候选（兼容场景）
 
 ```json
 {

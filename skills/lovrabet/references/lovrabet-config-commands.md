@@ -14,7 +14,7 @@ lovrabet config list
 lovrabet config          # list 是默认子命令
 ```
 
-无需参数。输出包含所有配置项的合并结果（项目级 + 全局级）。
+无需参数。输出包含所有配置项的合并结果（当前目录 + 全局级）。
 
 ## config get — 读取配置项
 
@@ -58,12 +58,12 @@ lovrabet config set <key> <value>
 
 **风险等级**：`write`
 
-> **作用域规则**：**默认写项目**（当前目录的 `.lovrabet.json`）。如果当前目录没有项目配置文件且未传 `--global`，CLI **拒绝执行**并提示先 `lovrabet app init` 或加 `--global`，**不会**静默写入全局。Agent 不应在用户未要求时擅自加 `--global`。
+> **作用域规则**：`config set` 是高级本地配置维护命令。默认写当前目录的 `.lovrabet.json`；如果当前目录没有本地配置文件且未传 `--global`，CLI **拒绝执行**，避免静默写入全局。常规使用优先通过 `auth login`、`app list`、显式 `--app` / `--appcode` 完成操作。
 
 **示例**：
 
 ```bash
-# 写入项目级配置（默认；须在含 .lovrabet.json 的目录下执行）
+# 写入当前目录配置（默认；须在含 .lovrabet.json 的目录下执行）
 lovrabet config set env daily
 lovrabet config set riskLevel write
 
@@ -96,7 +96,7 @@ lovrabet config delete <key>
 
 **风险等级**：`write`
 
-> **作用域规则**：与 `config set` 一致，默认项目。无项目配置文件且未传 `--global` 时拒绝执行。
+> **作用域规则**：与 `config set` 一致。无本地配置文件且未传 `--global` 时拒绝执行。
 
 ## 参考
 

@@ -8,12 +8,11 @@
 lovrabet auth login
 lovrabet auth login --access-key ak_xxx
 lovrabet auth login --global
-lovrabet auth login --project
 ```
 
 **行为**：
 - 默认写入全局配置 `~/.lovrabet.json`
-- 显式 `--project` 才写项目配置
+- 兼容场景可用 `--project` 写入当前目录本地配置；常规使用不需要
 - 交互模式下，不传 `--access-key` 会提示输入 AK，并提示先到 `https://user.lovrabet.com/user/ak` 自助创建
 - 也可以直接显式传入：`lovrabet auth login --access-key <ak_xxx>`
 
@@ -32,13 +31,12 @@ lovrabet auth login --project
 ```bash
 lovrabet auth init --access-key ak_xxx
 lovrabet auth init --access-key ak_xxx --env daily
-lovrabet auth init --project --access-key ak_xxx
 ```
 
 **行为**：
 - 会清空当前作用域下已有的整份 `.lovrabet.json` 配置内容，再仅写回新的认证初始化结果
 - 默认写入全局配置 `~/.lovrabet.json`
-- 显式 `--project` 才写项目配置
+- 兼容场景可用 `--project` 写入当前目录本地配置；常规使用不需要
 - 支持 `--env`，会和新的 `accessKey` 一起写入
 
 **风险提醒**：
@@ -56,7 +54,6 @@ lovrabet auth init --project --access-key ak_xxx
 
 ```bash
 lovrabet auth logout
-lovrabet auth logout --project
 ```
 
 ## auth status — 查看当前认证状态
@@ -110,7 +107,7 @@ CLI flag (--access-key)
   ↓
 环境变量 LOVRABET_ACCESS_KEY
   ↓
-项目级 .lovrabet.json
+当前目录 .lovrabet.json（兼容本地配置）
   ↓
 全局级 ~/.lovrabet.json
 ```
