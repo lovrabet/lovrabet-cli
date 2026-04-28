@@ -1,8 +1,8 @@
-# Data CRUD Workflow
+# Instant API Workflow
 
 ## 概述
 
-通过运行态 CLI 对数据集记录进行增删改查和聚合统计。所有 `data` 子命令共享统一接口：
+通过运行态 CLI 对数据集记录进行增删改查和聚合统计。`Instant API` 分组下的所有 `data` 子命令共享统一接口：
 
 ```bash
 lovrabet data <command> --code <datasetCode> --params '<json>'
@@ -19,9 +19,10 @@ lovrabet data <command> --code <datasetCode> --params '<json>'
 
 1. 先判断当前 app 是否已明确
 2. 当前 app 明确时，直接 `dataset list --name ...`
-3. 当前 app 不明确时，先 `app list`
-4. 再用 `dataset list --app <name> --name <关键词>` 收敛到正确 app
-5. 拿到 `dataset code` 后，再执行 `data filter/getOne/create/update/delete`
+3. 当前 app 不明确但有 `defaultApp` 时，先 `dataset list --name <关键词>` 验证默认候选
+4. 默认候选无命中、弱命中或语义不合理时，再 `app list`
+5. 再用 `dataset list --app <name> --name <关键词>` 收敛到正确 app
+6. 拿到 `dataset code` 后，再执行 `data filter/getOne/create/update/delete`
 
 不要直接在 app 未决议的情况下盲目构造 `data` 命令。
 

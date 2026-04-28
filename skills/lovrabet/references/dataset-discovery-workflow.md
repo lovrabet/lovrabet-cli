@@ -2,7 +2,7 @@
 
 ## 概述
 
-在执行数据操作前，需要先找到目标数据集并了解其字段结构。
+在执行 Instant API 数据操作前，需要先找到目标数据集并了解其字段结构。
 
 ## 先不要默认查 app
 
@@ -14,18 +14,27 @@
 
 - 用户已经给了 `--appcode`
 - 用户已经给了 `--app <name>`
-- 当前配置已有明确 `defaultApp`
-- 当前问题明显是在“当前项目 / 当前默认应用”里继续操作
+- 当前问题明显是在上文已确认的同一 app 里继续操作
+- 用户明确说“当前应用”“默认应用”，且没有新的业务域线索
+
+`defaultApp` 只是默认候选。用户提到订单、商品、库存、客户、证照等业务对象且未显式指定 app 时，先在默认候选里按关键词查数据集；命中合理再继续，无命中或不合理再扩大到 app 目录。
 
 ### 需要先做应用决议
 
 以下情况应先获取应用信息，再决定目标 app：
 
 - 用户只说了业务需求，没有给 app 线索
-- 当前没有 `defaultApp`
+- 当前没有显式 `--appcode` / `--app`，且需求包含业务域或数据对象线索
 - 需求描述可能对应多个业务应用
+- 已经在 `defaultApp` 下按关键词验证过，但没有合理数据集命中
 
-推荐先执行：
+若当前有 `defaultApp`，推荐先执行：
+
+```bash
+lovrabet dataset list --name "<关键词>"
+```
+
+默认候选无命中、弱命中或语义不合理时，再执行：
 
 ```bash
 lovrabet app list
@@ -89,7 +98,7 @@ lovrabet dataset detail --code <datasetCode> --verbose
 ## 典型工作流
 
 ```bash
-# 0. 如果当前 app 不明确，先看应用目录
+# 0. 如果默认候选验证不成立，再看应用目录
 lovrabet app list
 
 # 1. 在候选 app 中搜索数据集
@@ -98,7 +107,7 @@ lovrabet dataset list --app crm --name "公司"
 # 2. 命中后查看字段结构
 lovrabet dataset detail --code 2874b19935c240659e8872e9e2416ae3
 
-# 3. 确认字段名后，开始数据操作
+# 3. 确认字段名后，开始 Instant API 数据操作
 lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
   --params '{"where":{"name":{"$contain":"test"}},"currentPage":1,"pageSize":20}'
 ```
@@ -113,7 +122,7 @@ lovrabet dataset list --name "公司"
 #    如果需要字段类型等详细信息，再调 detail
 lovrabet dataset detail --code 2874b19935c240659e8872e9e2416ae3
 
-# 3. 确认字段名后，开始数据操作
+# 3. 确认字段名后，开始 Instant API 数据操作
 lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
   --params '{"where":{"name":{"$contain":"test"}},"currentPage":1,"pageSize":20}'
 ```
@@ -124,4 +133,4 @@ lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
 2. `dataset list` 返回的 `fields` 数组包含所有字段名，多数场景下无需额外调 `detail`
 3. `dataset detail` 返回的字段兼容 v1（properties）和 v2（fields）两种数据集格式
 4. 数据集的 code 是 32 位 hex UUID，是所有 `data *` 命令的必填参数
-5. 当业务需求不明确落在哪个 app 时，先 `app list`，再用 `dataset list --app <name> --name <关键词>` 做验证式收敛
+5. 当业务需求不明确落在哪个 app 时，先验证 `defaultApp`；验证不成立再 `app list`，并用 `dataset list --app <name> --name <关键词>` 做验证式收敛

@@ -28,7 +28,7 @@
 }
 ```
 
-`defaultApp` 现在只表示“默认使用哪个远端应用名”。真正的应用目录来自 cache / remote，不再在本地维护 `apps.*` overrides。
+`defaultApp` 现在只表示“没有更明确 app 线索时的默认候选远端应用名”。真正的应用目录来自 cache / remote，不再在本地维护 `apps.*` overrides。
 
 ## app cache
 
@@ -53,7 +53,7 @@
 | `format` | string | — | 默认输出格式：`json` / `pretty` / `compress` |
 | `pageSize` | number | — | 默认分页大小 |
 | `riskLevel` | string | `write` | 允许执行的最高风险等级 |
-| `defaultApp` | string | — | 默认应用名称 |
+| `defaultApp` | string | — | 默认候选应用名称 |
 | `inherit` | boolean | true | 项目配置是否继承全局配置 |
 
 ## 解析优先级
@@ -72,11 +72,12 @@ CLI flag (--appcode, --env, --format, --app ...)
 
 ## 关于 `defaultApp`
 
-`defaultApp` 仍然是本地配置的核心字段，但它现在只表示远端应用名称。
+`defaultApp` 仍然是本地配置字段，但它现在只表示默认候选的远端应用名称。
 
 所以：
 - `app use <name>` 可以只写 `defaultApp`
 - 运行时通过 cache 解析对应 `appcode`
+- Agent 场景中，`defaultApp` 是第一个验证候选；用户未指定 app 时先查默认候选的数据集，验证不成立再扩大到应用列表
 
 ## 环境变量
 

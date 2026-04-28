@@ -17,23 +17,27 @@
 
 - 用户已经给了 `--appcode`
 - 用户已经给了 `--app <name>`
-- 当前配置已有明确 `defaultApp`
-- 当前问题明显沿用当前项目 / 当前默认应用上下文
+- 当前问题明显沿用上文已确认的同一 app 上下文
+- 用户明确说“当前应用”“默认应用”，且没有新的业务域线索
+
+`defaultApp` 只是默认候选。SQL 可能按业务域分布在不同 app 中；用户提到新的业务域且未指定 app 时，先把 `defaultApp` 当第一个候选验证，验证不成立再扩大到应用列表。
 
 ### 需要先做应用决议的场景
 
-以下情况应先 `lovrabet app list`：
+以下情况才扩大到 `lovrabet app list`：
 
 - 用户只给了业务需求，没有明确说明是哪个应用里的 SQL
-- 当前没有 `defaultApp`
+- 当前没有显式 `--appcode` / `--app`，且需求包含业务域线索
 - 同一类业务可能落在多个 app 中
+- 已经把 `defaultApp` 作为候选检查过，但无法确认它承载本次 SQL
 
 推荐方式：
 
-1. `lovrabet app list`
-2. 用业务关键词选 1-2 个候选 app
-3. 到平台或 `rabetbase sql list` 中确认这些 app 下的 SQL
-4. 再回到 `lovrabet sql detail/exec`
+1. 有 `defaultApp` 时，先把它作为第一个候选
+2. 无法确认默认候选承载本次 SQL 时，再 `lovrabet app list`
+3. 用业务关键词选 1-2 个候选 app
+4. 从用户提供信息、平台 UI、前序上下文确认这些 app 下的 SQL；需要研发态发现时，显式交接到 `rabetbase sql list`
+5. 再回到 `lovrabet sql detail/exec`
 
 ## sql detail — 查看 SQL 详情
 
@@ -73,11 +77,11 @@ lovrabet sql exec --sqlcode <code> --params '{"status":"active"}'
 ## 典型工作流
 
 ```bash
-# 0. 如果当前 app 不明确，先看应用目录
+# 0. 如果默认候选验证不成立，再看应用目录
 lovrabet app list
 
-# 1. 如果不知道 sqlcode，先从平台获取
-#    （lrb 没有 sql list 命令，需要从 rabetbase sql list 或平台 UI 获取）
+# 1. 如果不知道 sqlcode，先从用户提供信息、平台 UI 或前序上下文获取
+#    需要研发态发现时，显式交接到 rabetbase sql list
 
 # 2. 查看 SQL 详情，了解参数结构
 lovrabet sql detail --sqlcode 2305f915-dd48cd4c
@@ -93,10 +97,10 @@ lovrabet sql exec --sqlcode 2305f915-dd48cd4c --params '{"status":"active"}' --f
 
 - SQL Code 格式为 `{8位hex}-{8位hex}`，如 `2305f915-dd48cd4c`
 - `--params` 必须是合法 JSON 字符串
-- lrb 没有 `sql list` 命令，需要从平台 UI 或 `rabetbase sql list` 获取 sqlcode 列表
-- 当业务归属不清时，先 `app list` 做应用决议，再去确认 sqlcode，而不是直接盲猜当前 app
+- `lovrabet` 没有 `sql list` 命令；sqlcode 列表来自用户提供信息、平台 UI、前序上下文，或显式研发态发现 `rabetbase sql list`
+- 当业务归属不清时，先验证 `defaultApp`；验证不成立再 `app list` 做应用决议，再去确认 sqlcode，而不是直接盲猜当前 app
 
 ## 参考
 
 - [SKILL.md](../SKILL.md)
-- [data-crud-workflow.md](data-crud-workflow.md)
+- [instant-api-workflow.md](instant-api-workflow.md)

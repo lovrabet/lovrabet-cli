@@ -17,23 +17,27 @@
 
 - 用户已经给了 `--appcode`
 - 用户已经给了 `--app <name>`
-- 当前配置已有明确 `defaultApp`
-- 当前任务明显沿用当前项目 / 当前默认应用上下文
+- 当前任务明显沿用上文已确认的同一 app 上下文
+- 用户明确说“当前应用”“默认应用”，且没有新的业务域线索
+
+`defaultApp` 只是默认候选。BFF 可能按业务域拆在不同 app 中；用户提到新的业务能力或业务对象且未指定 app 时，先把 `defaultApp` 当第一个候选验证，验证不成立再扩大到应用列表。
 
 ### 需要先做应用决议的场景
 
-以下情况应先 `lovrabet app list`：
+以下情况才扩大到 `lovrabet app list`：
 
 - 用户只描述了业务能力，没有说是哪个应用里的 BFF
-- 当前没有 `defaultApp`
+- 当前没有显式 `--appcode` / `--app`，且需求包含业务域或业务能力线索
 - 候选 app 可能不止一个
+- 已经把 `defaultApp` 作为候选检查过，但无法确认它承载本次 BFF
 
 推荐方式：
 
-1. `lovrabet app list`
-2. 用业务关键词挑候选 app
-3. 到平台或 `rabetbase bff list` 确认对应脚本
-4. 再执行 `lovrabet bff detail/exec`
+1. 有 `defaultApp` 时，先把它作为第一个候选
+2. 无法确认默认候选承载本次 BFF 时，再 `lovrabet app list`
+3. 用业务关键词挑候选 app
+4. 从用户提供信息、平台 UI、前序上下文确认对应脚本；需要研发态发现时，显式交接到 `rabetbase bff list`
+5. 再执行 `lovrabet bff detail/exec`
 
 ## bff detail — 查看 BFF 详情
 
@@ -73,11 +77,11 @@ lovrabet bff exec --name <functionName> --params '{"key":"value"}'
 ## 典型工作流
 
 ```bash
-# 0. 如果当前 app 不明确，先看应用目录
+# 0. 如果默认候选验证不成立，再看应用目录
 lovrabet app list
 
-# 1. 如果不知道脚本 ID，先从平台获取
-#    （lrb 没有 bff list 命令，需要从 rabetbase bff list 或平台 UI 获取）
+# 1. 如果不知道脚本 ID，先从用户提供信息、平台 UI 或前序上下文获取
+#    需要研发态发现时，显式交接到 rabetbase bff list
 
 # 2. 查看 BFF 详情，了解参数结构
 lovrabet bff detail --id 42
@@ -93,10 +97,11 @@ lovrabet bff exec --name getUserInfo --params '{"userId":123}' --format json
 
 - `--name` 即 BFF 中 `export default function` 后的函数名（`scriptName`），精确匹配
 - `--params` 必须是合法 JSON 字符串
-- lrb 没有 `bff list` 命令，需要从平台 UI 或 `rabetbase bff list` 获取脚本列表和 ID
-- 当业务归属不清时，先 `app list` 做应用决议，再去确认脚本，而不是直接盲猜当前 app
+- `lovrabet` 没有 `bff list` 命令；脚本列表和 ID 来自用户提供信息、平台 UI、前序上下文，或显式研发态发现 `rabetbase bff list`
+- 当业务归属不清时，先验证 `defaultApp`；验证不成立再 `app list` 做应用决议，再去确认脚本，而不是直接盲猜当前 app
+- 若刚完成研发态 `rabetbase bff push`，用本命令做运行态 smoke。若管理态已同步但运行态仍旧版本，按传播延迟 / 缓存延迟处理：等待后重试，必要时回到研发态精确 force push；多次不生效再记录平台运行态缓存风险
 
 ## 参考
 
 - [SKILL.md](../SKILL.md)
-- [data-crud-workflow.md](data-crud-workflow.md)
+- [instant-api-workflow.md](instant-api-workflow.md)

@@ -17,7 +17,7 @@
 - **作用**：在**最终要打印的整段 JSON 字符串**上执行 **jq** 表达式（与手动 `… \| jq '<expr>'` 一致）。
 - **适用**：仅当本次输出走 **`--format json` 或 `compress`** 时；若当前为 `pretty` 且你传了 `--jq`，管线会将格式**升格为 json** 再跑 jq（与 rabetbase 一致）。
 - **信封**：表达式作用在**完整信封**上，取业务数据多用 **`.data…`**（例如 `.data.items`、`.data.datasets[]`）。
-- **二进制**：优先使用依赖 **`node-jq`** 在安装时下载到 `node_modules/node-jq/bin/` 的 jq；若无则使用 **`PATH` 上的 `jq`**。若 `npm install` 跳过了 postinstall 且系统未装 jq，需安装 jq 或设置环境变量 **`JQ_PATH`** 指向可执行文件。
+- **二进制**：按 **`JQ_PATH` → CLI 内置 sidecar jq → `PATH` 上的 jq** 的顺序解析。若显式设置了 **`JQ_PATH`**，它必须指向一个真实可执行文件；否则命令会直接报错，不会静默回退。
 
 ## 示例
 

@@ -40,31 +40,36 @@ lovrabet app list --env daily
 - `data.meta.source`：来源
 - `data.meta.fetchedAt`：最近同步时间
 - `data.meta.cachePath`：cache 文件路径
-- `data.meta.defaultApp` / `defaultAppSource`：当前默认应用决议结果
+- `data.meta.defaultApp` / `defaultAppSource`：当前默认候选应用决议结果
 
 ## 何时应该先跑 app list
 
 应该先跑 `app list` 的场景：
 
 - 用户只说了业务域，没有给 app 线索
-- 当前没有 `defaultApp`
+- 当前没有显式 `--appcode` / `--app`，且需求包含业务域、对象名或数据集线索
 - 你怀疑需求可能落在多个 app 中
 - 你需要先确认当前 AK 在该环境下能看到哪些应用
+- 已经在 `defaultApp` 下按关键词验证过，但没有合理数据集命中
 
 不需要先跑 `app list` 的场景：
 
 - 用户已经给了 `--appcode`
 - 用户已经给了 `--app <name>`
-- 当前默认应用已经明确，且问题明显沿用当前上下文
+- 问题明显沿用上文已确认的同一 app 上下文
+- 用户明确说“当前应用”“默认应用”，且没有新的业务域线索
+
+`defaultApp` 只是默认候选，不是强上下文。未显式指定 app 且存在 `defaultApp` 时，应先用 `dataset list --name <关键词>` 验证默认候选；命中不合理时，再通过 `app list` 扩大搜索。
 
 ## 如何选择使用哪个应用
 
 推荐方法不是只看 app 名，而是：
 
-1. 先用 `app list` 拿到候选 app
-2. 按需求关键词挑 1-2 个候选
-3. 对每个候选执行 `dataset list --app <name> --name <关键词>`
-4. 用数据集命中情况反向确认正确 app
+1. 有 `defaultApp` 时，先在默认候选下执行 `dataset list --name <关键词>`
+2. 默认候选命中合理时直接继续
+3. 默认候选无命中、弱命中或语义不合理时，再用 `app list` 拿到候选 app
+4. 按需求关键词挑 1-2 个候选，对每个候选执行 `dataset list --app <name> --name <关键词>`
+5. 用数据集命中情况反向确认正确 app
 
 这样比纯靠 app 名猜测更稳。
 
@@ -88,9 +93,9 @@ lovrabet app pull --no-cache
 - `app pull` **不再**把远端应用列表写入 `.lovrabet.json`
 - 它的职责只是“刷新本地 cache”
 
-## app use — 切换默认应用
+## app use — 设置默认候选应用
 
-持久写入 `.lovrabet.json` 的 `defaultApp` 字段。
+持久写入 `.lovrabet.json` 的 `defaultApp` 字段。它表示没有更明确 app 线索时的默认候选，不应压过用户本次需求里的业务域线索。
 
 ```bash
 lovrabet app use <name>

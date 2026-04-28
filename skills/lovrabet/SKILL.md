@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 version: 2.1.1
-description: "Lovrabet 运行态 CLI — 通过 lovrabet 命令管理应用目录、数据集查询、数据 CRUD、SQL 执行、BFF 调用。触发词：云图、lovrabet、lovrabet-cli、app list、dataset、data filter、data getOne、create、update、delete、sql exec、bff exec、accessKey、compress、jq。"
+description: "Lovrabet 运行态 CLI — 通过 lovrabet 命令管理应用目录、数据集查询、Instant API 数据操作、SQL 执行、BFF 调用。触发词：云图、lovrabet、lovrabet-cli、app list、dataset、data filter、data getOne、create、update、delete、sql exec、bff exec、accessKey、compress、jq。"
 metadata:
   requires:
     bins: ["lovrabet"]
@@ -11,7 +11,7 @@ metadata:
 
 # lovrabet-runtime-cli — Lovrabet 运行态 CLI
 
-面向业务人员和集成开发者的运行态 CLI，提供数据集查询、数据 CRUD、SQL 执行、BFF 调用能力。
+面向业务人员和集成开发者的运行态 CLI，提供数据集查询、Instant API 数据操作、SQL 执行、BFF 调用能力。
 
 > **结构化输出与 jq**：需要机器可读 JSON 时优先 **`--format compress`**（单行信封）；需缩进时用 **`--format json`**。二者均可叠加全局 **`--jq '<expr>'`** 缩小输出；语义与 `rabetbase` 一致，详见 [输出格式与 --jq](references/lovrabet-output-format-jq.md)。
 
@@ -66,6 +66,7 @@ npm install -g @lovrabet/lovrabet-cli
 - **不要擅自加 `--global`** — 见上文「配置作用域原则」；默认写项目、读合并；仅在用户明确要求或文档说明的场景使用 `--global`。
 - **禁止通过修改配置文件提升权限** — 不得为了完成任务而修改 `.lovrabet.json`、环境变量或缓存内容来抬高 `riskLevel`、切换到并非用户明确授权的 `accessKey`、伪造 `defaultApp` / `appcode` / `env`、或借此突破当前权限边界。权限不足时，应明确说明限制，并要求用户提供合法的目标应用、凭证或确认范围。
 - **不要臆测当前登录用户** — 只要任务依赖“当前是谁在登录 / 当前 AK 属于谁”，先执行 `lovrabet auth info`，再继续判断应用、权限或数据可见性。
+- **SQL/BFF 标识发现与执行分层** — `lovrabet` 负责运行态 `sql exec` / `bff exec`；如果缺少 `sqlcode`、脚本 ID 或函数名，可以从平台 UI、用户提供信息、前序上下文，或显式交接到研发态 `rabetbase sql list` / `rabetbase bff list` 获取。不要把运行态执行和研发态发现混成一个隐式步骤。
 
 ## Agent 决策：何时获取应用信息
 
@@ -77,8 +78,8 @@ npm install -g @lovrabet/lovrabet-cli
 
 1. 用户已经显式给了 `--appcode`
 2. 用户已经显式给了 `--app <name>`
-3. 当前配置里已有明确的 `defaultApp`
-4. 问题明显是在“当前项目 / 当前默认应用”上下文里继续操作
+3. 问题明显是在上文已经确认过的同一 app 上继续操作
+4. 用户明确说“当前应用”“默认应用”，且没有新的业务域线索
 
 这种情况下，直接进入：
 
@@ -88,15 +89,18 @@ npm install -g @lovrabet/lovrabet-cli
 
 不要先多打一轮应用发现命令制造噪音。
 
-### 必须先获取应用信息的场景
+`defaultApp` 只是弱候选，不是强上下文。未显式指定 app 时，如果本地已有 `defaultApp`，应先在默认候选里按需求关键词做数据集验证；无命中、弱命中或语义不合理时，再扩大到 `app list` 里查找其他应用。
 
-出现以下情况时，应先做应用决议，必要时跑 `lovrabet app list`：
+### 需要进一步应用决议的场景
+
+出现以下情况时，应先做应用决议；有 `defaultApp` 时先验证默认候选，必要时再跑 `lovrabet app list`：
 
 1. 用户只给了业务需求，没有给 app 线索  
    例如：“帮我查订单数据集”“看一下 CRM 里的客户表”
-2. 当前没有 `defaultApp`，也没有显式 `--appcode`
+2. 当前没有显式 `--appcode` / `--app`，且需求中有业务域、对象名或数据集线索
 3. 当前配置中存在多个候选 app，且需求描述不足以直接锁定一个
 4. 用户明确说“先看看我有哪些应用”或“这个需求应该在哪个应用里”
+5. 已经在 `defaultApp` 下按关键词验证过，但没有合理数据集命中
 
 ### `app list` 的使用方式
 
@@ -111,12 +115,16 @@ npm install -g @lovrabet/lovrabet-cli
 
 1. **显式指定优先**
    - 用户给了 app 名、appcode、当前项目语境，直接采用
-2. **本地默认优先**
-   - 有 `defaultApp` 且需求没有显示冲突，先用默认应用
-3. **需求关键词映射**
+2. **上下文确认优先**
+   - 上文刚确认过目标 app，且本次没有引入新的业务域，继续使用该 app
+3. **默认候选先验证**
+   - 有 `defaultApp` 时，先执行 `dataset list --name <关键词>` 验证默认候选是否匹配
+   - 命中的数据集名称、字段、描述明显贴合需求时，继续用默认候选
+   - 无命中、弱命中或语义不合理时，再进入 `app list`
+4. **需求关键词映射**
    - 需求里出现业务域关键词时，用 `app list` 输出的 `name` 先做语义匹配  
    - 例如：`CRM`、`订单`、`电商`、`证照`、`需求管理`
-4. **验证式收敛**
+5. **验证式收敛**
    - 对候选应用执行 `dataset list --app <name> --name <关键词>`
    - 哪个返回的数据集更匹配，就收敛到哪个 app
 
@@ -125,10 +133,10 @@ npm install -g @lovrabet/lovrabet-cli
 当用户说“帮我查某个业务数据”时，推荐流程是：
 
 1. 先判断当前是否已有明确 app 上下文
-2. 没有则 `lovrabet app list`
-3. 按业务关键词挑 1-2 个候选 app
-4. 对候选 app 执行 `dataset list --app <name> --name <关键词>`
-5. 命中后再继续 `dataset detail` 或 `data filter`
+2. 若有 `defaultApp`，先 `lovrabet dataset list --name <关键词>` 验证默认候选
+3. 默认候选命中合理时，继续 `dataset detail` 或 `data filter`
+4. 默认候选无命中或不合理时，再 `lovrabet app list`
+5. 按业务关键词挑 1-2 个候选 app，并执行 `dataset list --app <name> --name <关键词>` 验证
 
 ### 不要这样做
 
@@ -146,13 +154,14 @@ npm install -g @lovrabet/lovrabet-cli
 | **app** | `init` | 创建 `.lovrabet.json` 配置 | write | — |
 | **app** | `list` | 列出当前 AK 可见应用（远端优先，带缓存） | read | — |
 | **app** | `pull` | 刷新本地 app cache | write | — |
-| **app** | `use` | 切换默认应用 | write | — |
+| **app** | `use` | 设置默认候选应用 | write | — |
 | **app** | `import` | 从升级后的 .rabetbase.json 导入顶层配置 | write | — |
 | **config** | `list` | 查看完整配置 | read | — |
 | **config** | `get` | 读取配置项 | read | — |
 | **config** | `set` | 写入配置项 | write | — |
 | **config** | `delete` | 删除配置项 | write | — |
 | **skill** | `install` | 全局安装官方运行态 Skill | write | — |
+| **update** | `run` | 从 npm 更新 CLI 并刷新官方 Skill | write | — |
 | **dataset** | `list` | 列出数据集（含字段列表） | read | **是** |
 | **dataset** | `detail` | 查看数据集结构 | read | **是** |
 | **data** | `filter` | 按条件查询数据记录 | read | — |
@@ -176,7 +185,7 @@ npm install -g @lovrabet/lovrabet-cli
 |------|------|
 | 安装 / 刷新 Skill | `lovrabet skill install` |
 | 初始化配置 | `lovrabet app init --appcode <code> [--env daily] [--global]` |
-| 从升级后的 rb 配置导入 | `lovrabet app import --file /path/to/.rabetbase.json` |
+| 从升级后的 rabetbase 配置导入 | `lovrabet app import --file /path/to/.rabetbase.json` |
 | 登录 | `lovrabet auth login` |
 | 查看当前 AK 对应的登录用户 | `lovrabet auth info` |
 | 任何依赖“当前登录用户身份”的场景先取身份 | `lovrabet auth info` |
@@ -191,9 +200,25 @@ npm install -g @lovrabet/lovrabet-cli
 | 只看本地缓存的应用列表 | `lovrabet app list --local` |
 | 强制刷新线上应用列表 | `lovrabet app list --no-cache` |
 | 手动刷新应用缓存 | `lovrabet app pull` |
-| 切换默认应用 | `lovrabet app use <name>` |
+| 设置默认候选应用 | `lovrabet app use <name>` |
+| 更新 CLI 到 npm latest | `lovrabet update --latest` |
+| 更新 CLI 到 npm beta | `lovrabet update --beta` |
+| 更新 CLI 到指定版本 | `lovrabet update --version <version>` |
 
-### 数据集与数据操作
+### CLI 更新
+
+`lovrabet update` 只查询 npm package 的 dist-tags，不依赖 CDN 文件。默认等价于 `--latest`；`--beta` 使用 npm `beta` dist-tag；`--version <version>` 安装指定 semver。更新检查完成后会自动刷新官方 Skill，除非显式传 `--no-skills`。
+
+开源二开配置集中在项目代码的 `src/constant/product.ts`，`src/constant/distribution.ts` 只做兼容导出：
+
+- `PRODUCT_CONFIG.cliBinName`：CLI 可执行命令名
+- `PRODUCT_CONFIG.npmPackageName`：npm 包名
+- `PRODUCT_CONFIG.skillSource`：`npx skills add` 的 skill source
+- `PRODUCT_CONFIG.envPrefix`：环境变量前缀
+- `PRODUCT_CONFIG.domains`：默认服务域名
+- `PRODUCT_CONFIG.userCenterDisplayName` / `accessKeyCreatePath`：AK 创建提示
+
+### 数据集与 Instant API
 
 | 意图 | 命令 |
 |------|------|
@@ -230,7 +255,7 @@ npm install -g @lovrabet/lovrabet-cli
 lovrabet <service> <command> --code <code> --params '<json>'
 ```
 
-## 数据 CRUD 工作流
+## Instant API 工作流
 
 ```bash
 # 1. 找到目标数据集
@@ -372,7 +397,7 @@ lovrabet data delete --code <datasetCode> --params '{"id":123}' --yes
 | 配置管理 | [lovrabet-config-commands.md](references/lovrabet-config-commands.md) |
 | 配置文件参考 | [lovrabet-config.md](references/lovrabet-config.md) |
 | 数据集发现 | [dataset-discovery-workflow.md](references/dataset-discovery-workflow.md) |
-| 数据 CRUD | [data-crud-workflow.md](references/data-crud-workflow.md) |
+| Instant API | [instant-api-workflow.md](references/instant-api-workflow.md) |
 | SQL 工作流 | [lovrabet-sql-workflow.md](references/lovrabet-sql-workflow.md) |
 | BFF 工作流 | [lovrabet-bff-workflow.md](references/lovrabet-bff-workflow.md) |
 | 日志 | [lovrabet-logs.md](references/lovrabet-logs.md) |

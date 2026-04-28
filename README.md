@@ -2,6 +2,9 @@
 
 [Lovrabet](https://www.lovrabet.com)（中文名云兔）是企业级 AI-Native 业务系统生成平台。`lovrabet` 是它的运行态 CLI，面向业务人员、交付实施、集成开发者和 AI 助手，提供应用切换、数据集发现、数据查询与写入、SQL 执行、BFF 调用等能力。
 
+![lovrabet-cli-workflow](./images/lovrabet-cli-workflow.png)
+
+
 这个仓库同时提供两部分内容：
 
 * `lovrabet` CLI 的公开安装入口
