@@ -160,4 +160,4 @@ lovrabet dataset list --app <name> --name "<关键词>"
 - `defaultApp` 是默认候选；未显式指定 app 时先验证它，验证不成立再扩大搜索
 - `lovrabet app list`：远端优先
 - `lovrabet app pull`：只做手动刷新 cache
-- `lovrabet app use <name>`：只修改 `defaultApp`
+- `lovrabet app use <name>`：只修改 `defaultApp`；跨环境操作时带上和 `app list` 相同的 `--env`，例如 `lovrabet app use <name> --env daily`

@@ -6,6 +6,7 @@
 
 ```bash
 lovrabet auth login
+lovrabet auth login --non-interactive
 lovrabet auth login --access-key ak_xxx
 lovrabet auth login --global
 ```
@@ -14,7 +15,10 @@ lovrabet auth login --global
 - 默认写入全局配置 `~/.lovrabet.json`
 - 兼容场景可用 `--project` 写入当前目录本地配置；常规使用不需要
 - 交互模式下，不传 `--access-key` 会提示输入 AK，并提示先到 `https://user.lovrabet.com/user/ak` 自助创建
+- `--non-interactive` 表示无打扰模式：不进入 stdin prompt；如果缺少 AccessKey，会立即提示创建链接和 `--access-key` 命令
+- `auth login` 不支持 `--yes`；`--yes` 只用于高风险写操作的确认跳过
 - 也可以直接显式传入：`lovrabet auth login --access-key <ak_xxx>`
+- 在 Agent、CI、后台任务或非 TTY 环境中，不要运行裸 `auth login`；使用 `lovrabet auth login --non-interactive` 获取提示，等用户提供 `ak_...` 后再执行带 `--access-key` 的命令
 
 **适用场景**：
 - 想替换当前 AK，但尽量保留已有 `defaultApp`、`format`、`pageSize`、域名覆盖等配置
@@ -22,9 +26,10 @@ lovrabet auth login --global
 
 **推荐顺序**：
 
-1. 先到 `https://user.lovrabet.com/user/ak` 创建 AccessKey
-2. 执行 `lovrabet auth login`
-3. 再执行 `lovrabet auth info`，确认当前 AK 对应的是预期用户
+1. Agent 先执行 `lovrabet auth login --non-interactive`，把提示里的 `https://user.lovrabet.com/user/ak` 发给用户
+2. 用户创建或复制 AccessKey，并把 `ak_...` 发给 Agent
+3. Agent 执行 `lovrabet auth login --access-key <ak_xxx>`
+4. 再执行 `lovrabet auth info`，确认当前 AK 对应的是预期用户
 
 ## auth init — 清空并重建当前作用域认证配置
 

@@ -46,8 +46,8 @@ npm install -g @lovrabet/lovrabet-cli
 
 ### 认证命令选择
 
-- **只想更新 AK，尽量保留现有配置**：使用 `lovrabet auth login`
-- **还没有 AK，需要先自助创建**：访问 `https://user.lovrabet.com/user/ak` 创建，再执行 `lovrabet auth login`
+- **只想更新 AK，尽量保留现有配置**：用户提供 AccessKey 后，使用 `lovrabet auth login --access-key <ak_xxx>`
+- **还没有 AK，需要先自助创建**：Agent 可先执行 `lovrabet auth login --non-interactive` 获取无打扰提示，把 `https://user.lovrabet.com/user/ak` 发给用户；用户把 `ak_...` 发给 Agent 后，再执行 `lovrabet auth login --access-key <ak_xxx>`
 - **想确认当前 AK 对应的是哪个用户**：使用 `lovrabet auth info`
 - **凡是后续命令需要“当前登录用户身份信息”**：统一先执行 `lovrabet auth info` 获取，不要猜当前 AK 对应的人
 - **要从头重建当前作用域认证配置**：使用 `lovrabet auth init`
@@ -56,13 +56,13 @@ npm install -g @lovrabet/lovrabet-cli
 
 ## 本地配置原则
 
-- Lovrabet 运行态 CLI **不要求先创建项目或执行 `app init`**。常规上手路径是 `auth login` → `app list` → `dataset/data/sql/bff`。
+- Lovrabet 运行态 CLI **不要求先创建项目或执行 `app init`**。Agent 常规上手路径是 `auth login --non-interactive` 提示用户取 AK → 用户提供 AccessKey → `auth login --access-key <ak_xxx>` → `app list` → `dataset/data/sql/bff`。
 - `.lovrabet.json` 只是可选的本地用户意图配置，不代表平台项目，也不保存平台应用目录。
 - **不要**在用户未要求时主动修改本地配置或加 `--global`；优先用显式 `--app` / `--appcode` 满足本次操作。
 - **`config set` / `config delete`**：属于高级本地配置维护命令。无本地配置文件且未传 `--global` 时，CLI 会拒绝执行，避免静默污染全局配置。
 - **`app list`**：默认走**远端优先 + 本地缓存**；`--local` 只读缓存；`--no-cache` 强制打线上并刷新缓存。
 - **`app pull`**：只刷新本地 app cache，**不**把远端应用列表写入 `.lovrabet.json`；它是手动刷新命令，平时优先使用 `app list`
-- **`app use` / `app import`**：只操作本地用户意图配置（`defaultApp` / 顶层 `appcode`），详见 [应用管理](references/lovrabet-app.md)。
+- **`app use` / `app import`**：只操作本地用户意图配置（`defaultApp` / 顶层 `appcode`）。如果前一步用 `app list --env daily` 查到应用，`app use` 也要带同一个 `--env daily`，避免按默认环境查缓存。详见 [应用管理](references/lovrabet-app.md)。
 
 ## Agent 禁止行为
 
@@ -186,7 +186,8 @@ npm install -g @lovrabet/lovrabet-cli
 | 意图 | 命令 |
 |------|------|
 | 安装 / 刷新 Skill | `lovrabet skill install` |
-| 登录 | `lovrabet auth login` |
+| 无打扰提示用户配置 AccessKey | `lovrabet auth login --non-interactive` |
+| 登录 | `lovrabet auth login --access-key <ak_xxx>` |
 | 查看当前 AK 对应的登录用户 | `lovrabet auth info` |
 | 任何依赖“当前登录用户身份”的场景先取身份 | `lovrabet auth info` |
 | 重置并重建认证配置 | `lovrabet auth init --access-key ak_xxx [--env daily]` |
@@ -201,6 +202,7 @@ npm install -g @lovrabet/lovrabet-cli
 | 强制刷新线上应用列表 | `lovrabet app list --no-cache` |
 | 手动刷新应用缓存 | `lovrabet app pull` |
 | 设置默认候选应用 | `lovrabet app use <name>` |
+| 设置指定环境的默认候选应用 | `lovrabet app use <name> --env daily` |
 | 更新 CLI 到 npm latest | `lovrabet update --latest` |
 | 更新 CLI 到 npm beta | `lovrabet update --beta` |
 | 更新 CLI 到指定版本 | `lovrabet update --version <version>` |

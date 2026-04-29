@@ -99,6 +99,7 @@ lovrabet app pull --no-cache
 
 ```bash
 lovrabet app use <name>
+lovrabet app use <name> --env daily
 lovrabet app use <name> --global
 ```
 
@@ -108,12 +109,14 @@ lovrabet app use <name> --global
 
 | Flag | 类型 | 默认 | 说明 |
 |------|------|------|------|
+| `--env <env>` | string | 当前环境 | 指定应用名校验时使用的缓存环境：production / development / daily |
 | `--global` | boolean | false | 操作全局配置 `~/.lovrabet.json` |
 
 **行为**：
-- 应用名来自当前 cache 中的远端 app 名称
+- 应用名来自当前环境 cache 中的远端 app 名称；如果前一步用 `app list --env daily` 查到应用，后续 `app use` 也要带 `--env daily`
 - `app use` 只修改 `defaultApp`
 - 不会同步或写入整份远端应用目录
+- 如果提示 `App "<name>" not found.`，先确认 `--env` 是否和前一步 `app list` / `app pull` 使用的环境一致，再考虑 `app list --no-cache --env <env>` 刷新缓存
 
 ## app import — 从 rabetbase 配置导入
 
