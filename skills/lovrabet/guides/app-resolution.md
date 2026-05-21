@@ -155,7 +155,7 @@ lovrabet dataset list --app <name> --name "<关键词>"
 
 ## 当前架构要点
 
-- app 真源头：远端接口 + 本地 cache
+- 应用目录来源：远端接口 + 本地 cache
 - 本地配置只保存用户意图：`defaultApp`、顶层 `appcode`
 - `defaultApp` 是默认候选；未显式指定 app 时先验证它，验证不成立再扩大搜索
 - `lovrabet app list`：远端优先

@@ -95,6 +95,8 @@ lovrabet dataset detail --code <datasetCode> --verbose
 - **操作列表** — name, method, path（getList, getOne, create, update, delete 等）
 - **统计** — fieldCount, operationCount
 
+当运行态详情接口未返回 `fields` / `properties` 时，CLI 会从 `dataset list` 兜底字段名，保证 `fieldCount` 和字段名可用于 `data filter`；此时类型、必填、选项等详细字段属性可能为空。
+
 ## 典型工作流
 
 ```bash
@@ -131,6 +133,6 @@ lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
 
 1. 使用 `--format json` 获取结构化输出，便于程序解析
 2. `dataset list` 返回的 `fields` 数组包含所有字段名，多数场景下无需额外调 `detail`
-3. `dataset detail` 返回的字段兼容 v1（properties）和 v2（fields）两种数据集格式
+3. `dataset detail` 返回的字段兼容 v1（properties）和 v2（fields）两种数据集格式；运行态接口未给完整字段时会兜底字段名
 4. 数据集的 code 是 32 位 hex UUID，是所有 `data *` 命令的必填参数
 5. 当业务需求不明确落在哪个 app 时，先验证 `defaultApp`；验证不成立再 `app list`，并用 `dataset list --app <name> --name <关键词>` 做验证式收敛

@@ -1,6 +1,6 @@
 ---
 name: lovrabet
-version: 2.0.7
+version: 2.0.10
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、数据集查询、Instant API 数据操作、SQL 执行、BFF 调用。触发词：云图、lovrabet、lovrabet-cli、app list、dataset、data filter、data getOne、create、update、delete、sql exec、bff exec、accessKey、compress、jq。"
 metadata:
   requires:
@@ -9,7 +9,7 @@ metadata:
   cliHelp: "lovrabet --help"
 ---
 
-# lovrabet-runtime-cli — Lovrabet 运行态 CLI
+# Lovrabet 运行态 CLI
 
 面向业务系统运行态的 AI 操作套件。它把应用目录、数据集、Instant API 数据操作、SQL、BFF 和诊断能力收束成稳定命令，让业务人员、交付实施、业务运维和 AI Agent 可以从客户、订单、库存、工单等真实业务对象出发，完成查询、核对、执行、联调和排障。
 
@@ -112,6 +112,8 @@ npm install -g @lovrabet/lovrabet-cli
 - 只想复用本地目录时：`lovrabet app list --local`
 - 明确要强制刷新时：`lovrabet app list --no-cache`
 
+`app list` 的应用条目中，应用支持语种以 `languages` 或 `i18nInfo.langs` 为准；`locale` 是 CLI 本地兼容配置字段，不代表应用真实语种。
+
 ### 如何根据需求判断使用哪个应用
 
 优先级按下面做，不要随意跳步：
@@ -163,6 +165,8 @@ npm install -g @lovrabet/lovrabet-cli
 | **config** | `set` | 写入配置项 | write | — |
 | **config** | `delete` | 删除配置项 | write | — |
 | **skill** | `install` | 全局安装官方运行态 Skill | write | — |
+| **skill** | `pull` | 拉取当前应用 personal/company 运行态 Skill 到本地 | write | — |
+| **skill** | `push` | 从本地目录创建或更新 personal 运行态 Skill | write | — |
 | **update** | `run` | 从 npm 更新 CLI 并刷新官方 Skill | write | — |
 | **dataset** | `list` | 列出数据集（含字段列表） | read | **是** |
 | **dataset** | `detail` | 查看数据集结构 | read | **是** |
@@ -186,6 +190,9 @@ npm install -g @lovrabet/lovrabet-cli
 | 意图 | 命令 |
 |------|------|
 | 安装 / 刷新 Skill | `lovrabet skill install` |
+| 拉取当前应用个人和公司 Skill | `lovrabet skill pull` |
+| 只拉取指定 Skill | `lovrabet skill pull --code <skillCode>` |
+| 将本地 Skill 目录推送为个人 Skill | `lovrabet skill push --dir <dir>` |
 | 无打扰提示用户配置 AccessKey | `lovrabet auth login --non-interactive` |
 | 登录 | `lovrabet auth login --access-key <ak_xxx>` |
 | 查看当前 AK 对应的登录用户 | `lovrabet auth info` |
@@ -397,6 +404,7 @@ lovrabet data delete --code <datasetCode> --params '{"id":123}' --yes
 | 应用管理 | [lovrabet-app.md](references/lovrabet-app.md) |
 | 配置管理 | [lovrabet-config-commands.md](references/lovrabet-config-commands.md) |
 | 配置文件参考 | [lovrabet-config.md](references/lovrabet-config.md) |
+| Skill 同步 | [lovrabet-skill-sync.md](references/lovrabet-skill-sync.md) |
 | 数据集发现 | [dataset-discovery-workflow.md](references/dataset-discovery-workflow.md) |
 | Instant API | [instant-api-workflow.md](references/instant-api-workflow.md) |
 | SQL 工作流 | [lovrabet-sql-workflow.md](references/lovrabet-sql-workflow.md) |
