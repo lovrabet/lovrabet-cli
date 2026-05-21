@@ -1,6 +1,6 @@
 ---
 name: lovrabet
-version: 2.0.10
+version: 2.0.11
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、数据集查询、Instant API 数据操作、SQL 执行、BFF 调用。触发词：云图、lovrabet、lovrabet-cli、app list、dataset、data filter、data getOne、create、update、delete、sql exec、bff exec、accessKey、compress、jq。"
 metadata:
   requires:
