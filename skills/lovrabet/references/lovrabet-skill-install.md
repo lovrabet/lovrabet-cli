@@ -8,15 +8,10 @@
 lovrabet skill install
 ```
 
-## 实际执行的外部命令
-
-```bash
-npx skills add lovrabet/lovrabet-cli -g -y
-```
-
 ## 说明
 
 - 该命令不依赖 `accessKey` 或 `appcode`
+- 官方安装源：`lovrabet/lovrabet-cli`
 - 安装的是 GitHub 发布仓库中的 `skills/lovrabet/`
 - 适用于首次安装、重装或刷新本地 Skill
 - 需要本机可访问 npm 与 GitHub

@@ -14,7 +14,7 @@
 
 - 先到 `https://user.lovrabet.com/user/ak` 创建 AccessKey
 - 想保留当前配置，执行 `lovrabet auth login`
-- 想清空当前作用域配置后重建认证，执行 `lovrabet auth init --access-key ak_xxx [--env daily]`
+- 想清空当前作用域配置后重建认证，执行 `lovrabet auth init --access-key <ACCESS_KEY> [--env daily]`
 
 ## 已登录，但业务命令仍失败
 
@@ -39,7 +39,7 @@ lovrabet app list --no-cache
 可直接重建认证配置：
 
 ```bash
-lovrabet auth init --access-key ak_xxx --env daily
+lovrabet auth init --access-key <ACCESS_KEY> --env daily
 ```
 
 注意：这会清掉当前作用域里已有的其他配置字段，不只是 `accessKey`。

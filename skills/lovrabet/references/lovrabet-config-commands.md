@@ -74,7 +74,7 @@ lovrabet config set env daily --global
 lovrabet config set riskLevel write --app order
 
 # 配置 User AK（client-ak）
-lovrabet config set accessKey ak-xxx
+lovrabet config set accessKey <ACCESS_KEY>
 ```
 
 ## config delete — 删除配置项

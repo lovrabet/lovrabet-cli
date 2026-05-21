@@ -7,7 +7,7 @@
 ```bash
 lovrabet auth login
 lovrabet auth login --non-interactive
-lovrabet auth login --access-key ak_xxx
+lovrabet auth login --access-key <ACCESS_KEY>
 lovrabet auth login --global
 ```
 
@@ -17,8 +17,9 @@ lovrabet auth login --global
 - 交互模式下，不传 `--access-key` 会提示输入 AK，并提示先到 `https://user.lovrabet.com/user/ak` 自助创建
 - `--non-interactive` 表示无打扰模式：不进入 stdin prompt；如果缺少 AccessKey，会立即提示创建链接和 `--access-key` 命令
 - `auth login` 不支持 `--yes`；`--yes` 只用于高风险写操作的确认跳过
-- 也可以直接显式传入：`lovrabet auth login --access-key <ak_xxx>`
-- 在 Agent、CI、后台任务或非 TTY 环境中，不要运行裸 `auth login`；使用 `lovrabet auth login --non-interactive` 获取提示，等用户提供 `ak_...` 后再执行带 `--access-key` 的命令
+- 也可以直接显式传入：`lovrabet auth login --access-key <ACCESS_KEY>`
+- Agent 可以使用用户提供的 AccessKey 完成认证，但不要在答复、日志或文档示例中回显真实值
+- 在 Agent、CI、后台任务或非 TTY 环境中，不要运行裸 `auth login`；使用 `lovrabet auth login --non-interactive` 获取提示，等用户提供 AccessKey 后再执行带 `--access-key` 的命令
 
 **适用场景**：
 - 想替换当前 AK，但尽量保留已有 `defaultApp`、`format`、`pageSize`、域名覆盖等配置
@@ -27,15 +28,15 @@ lovrabet auth login --global
 **推荐顺序**：
 
 1. Agent 先执行 `lovrabet auth login --non-interactive`，把提示里的 `https://user.lovrabet.com/user/ak` 发给用户
-2. 用户创建或复制 AccessKey，并把 `ak_...` 发给 Agent
-3. Agent 执行 `lovrabet auth login --access-key <ak_xxx>`
+2. 用户创建或复制 AccessKey，并提供给 Agent
+3. Agent 执行 `lovrabet auth login --access-key <ACCESS_KEY>`
 4. 再执行 `lovrabet auth info`，确认当前 AK 对应的是预期用户
 
 ## auth init — 清空并重建当前作用域认证配置
 
 ```bash
-lovrabet auth init --access-key ak_xxx
-lovrabet auth init --access-key ak_xxx --env daily
+lovrabet auth init --access-key <ACCESS_KEY>
+lovrabet auth init --access-key <ACCESS_KEY> --env daily
 ```
 
 **行为**：
@@ -53,7 +54,7 @@ lovrabet auth init --access-key ak_xxx --env daily
 
 - **保留现有配置，只更新认证**：`lovrabet auth login`
 - **当前作用域配置已经混乱，想彻底重来**：`lovrabet auth init`
-- **需要同时清空旧配置并重建 env**：`lovrabet auth init --access-key ak_xxx --env daily`
+- **需要同时清空旧配置并重建 env**：`lovrabet auth init --access-key <ACCESS_KEY> --env daily`
 
 ## auth logout — 清除本地 accessKey
 
@@ -83,7 +84,7 @@ lovrabet auth info --env daily
 
 ```text
 GET /client/user/loginUserInfo
-X-User-AK: <current accessKey>
+X-User-AK: <redacted>
 ```
 
 会返回：

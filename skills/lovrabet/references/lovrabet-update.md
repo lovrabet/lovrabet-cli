@@ -39,7 +39,7 @@ lovrabet update --latest --no-skills
 | `PRODUCT_CONFIG.cliBinName` | CLI 可执行命令名 |
 | `PRODUCT_CONFIG.cliDisplayName` | 帮助与诊断中的 CLI 展示名 |
 | `PRODUCT_CONFIG.npmPackageName` | npm 包名 |
-| `PRODUCT_CONFIG.skillSource` | `npx skills add` 使用的 skill source |
+| `PRODUCT_CONFIG.skillSource` | 官方 Skill 安装源 |
 | `PRODUCT_CONFIG.npmRegistryBaseUrl` | npm registry 地址 |
 | `PRODUCT_CONFIG.envPrefix` | 环境变量前缀 |
 | `PRODUCT_CONFIG.configFileNames` | 配置文件查找名 |

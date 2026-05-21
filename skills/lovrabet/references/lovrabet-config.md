@@ -15,7 +15,7 @@
 {
   "appcode": "app-xxxxxxxx",
   "env": "daily",
-  "accessKey": "ak_xxx"
+  "accessKey": "<ACCESS_KEY>"
 }
 ```
 
@@ -23,7 +23,7 @@
 
 ```json
 {
-  "accessKey": "ak_xxx",
+  "accessKey": "<ACCESS_KEY>",
   "env": "daily",
   "defaultApp": "crm"
 }
@@ -109,7 +109,7 @@ CLI flag (--appcode, --env, --format, --app ...)
 
 ```json
 {
-  "accessKey": "ak-xxxxxxxxxxxx",
+  "accessKey": "<ACCESS_KEY>",
   "env": "daily",
   "defaultApp": "crm"
 }
