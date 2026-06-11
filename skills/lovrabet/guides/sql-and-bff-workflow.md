@@ -59,6 +59,33 @@ lovrabet bff detail --id <id>
 lovrabet bff exec --name <functionName> --params '<json>'
 ```
 
+## personal BFF 工作流
+
+personal BFF 是当前用户在当前应用下维护的个人脚本，适合给 Artifact 做轻量数据编排，或先验证一个临时业务接口的返回形状。
+
+标准顺序：
+
+1. `lovrabet personal-bff list` 查当前用户已有脚本
+2. `lovrabet personal-bff detail --id <id>` 查看现有脚本后再更新
+3. 从本地脚本文件 `create` 或 `update`
+4. `lovrabet personal-bff exec --id <id> --params '<json>' --yes --format compress` 确认返回形状
+5. 再把结果形状用于 Artifact 源码或交付说明
+
+```bash
+lovrabet personal-bff create --name loadOrders --file ./load-orders.js --dry-run
+lovrabet personal-bff exec --id <id> --params '{"status":"active"}' --yes --format compress
+```
+
+`personal-bff exec` 是 `high-risk-write`，因为脚本行为可能有副作用；非交互场景必须带 `--yes`。
+
+## 复杂业务写入与频率保护
+
+多数据集写入、跨步骤依赖、upsert、执行时需要 handoff 结果或需要幂等恢复的业务动作，优先封装在 BFF 中，再通过 `lovrabet bff exec` 调用。Agent 不应在执行时直接拼多次 `data create` 或 `data batchCreate` 绕过业务入口。BFF 写入类执行仍需先确认业务授权、Studio 权限和人工确认语义；CLI 将 `bff exec` 标记为 `read`，不等同于免审批写入。
+
+推荐 BFF 入参包含业务级 `requestId` 或 `idempotencyKey`。BFF 内部按业务唯一键先只读核对，确认不存在再写入；遇到频率保护、超时或客户端没有拿到成功结果时，等待后再次只读核对，确认没有落地再重试。只有同一数据集多条新增时，BFF/CLI service 内部才适合使用 `batchCreate` 减少请求次数。
+
+BFF 返回值应包含 handoff 所需结果：已创建记录、已复用记录、失败步骤、是否可重试和 traceId。这样 Agent 拿到的是业务结果，而不是一串低层写接口的临场拼装结果。
+
 ## 什么时候可以跳过 app 决议
 
 以下情况可以直接进入 `sql detail/exec` 或 `bff detail/exec`：
@@ -81,3 +108,4 @@ lovrabet bff exec --name <functionName> --params '<json>'
 - app 决议：`lovrabet app list`
 - SQL 标识来源：用户提供、平台 UI、前序上下文，或显式研发态发现 `rabetbase sql list`
 - BFF 标识来源：用户提供、平台 UI、前序上下文，或显式研发态发现 `rabetbase bff list`
+- personal BFF：`lovrabet personal-bff list/detail/create/update/exec`

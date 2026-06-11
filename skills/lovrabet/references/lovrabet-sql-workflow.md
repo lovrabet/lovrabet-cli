@@ -4,8 +4,7 @@
 
 ## 前置条件
 
-- `sql detail` 需要 Cookie 认证（`requiresCookieAuth: true`）
-- `sql exec` 使用 SDK 认证，支持 **accessKey（client-ak）**
+- `sql detail` 和 `sql exec` 使用当前 CLI 认证，默认推荐 **accessKey（client-ak）**
 
 ## 先判断 app 是否明确
 

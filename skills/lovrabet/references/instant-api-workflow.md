@@ -22,13 +22,13 @@ lovrabet data <command> --code <datasetCode> --params '<json>'
 3. 当前 app 不明确但有 `defaultApp` 时，先 `dataset list --name <关键词>` 验证默认候选
 4. 默认候选无命中、弱命中或语义不合理时，再 `app list`
 5. 再用 `dataset list --app <name> --name <关键词>` 收敛到正确 app
-6. 拿到 `dataset code` 后，再执行 `data filter/getOne/create/update/delete`
+6. 拿到 `dataset code` 后，再执行 `data filter/getOne/create/batchCreate/update/delete`
 
 不要直接在 app 未决议的情况下盲目构造 `data` 命令。
 
 ## 架构说明
 
-6 个 data 子命令对应 6 个运行态 API 端点：
+7 个 data 子命令对应 7 个运行态 API 端点：
 
 | 子命令 | 说明 | 风险等级 |
 |--------|------|----------|
@@ -36,6 +36,7 @@ lovrabet data <command> --code <datasetCode> --params '<json>'
 | `getOne` | 按 ID 获取单条 | read |
 | `aggregate` | 聚合统计（分组、求和、计数等） | read |
 | `create` | 新建记录 | write |
+| `batchCreate` | 批量新建同一数据集记录 | write |
 | `update` | 更新记录 | write |
 | `delete` | 删除记录（需 `--yes`） | high-risk-write |
 
@@ -141,6 +142,20 @@ lovrabet data create --code <code> --params '{"name":"test","amount":100}' --dry
 # 执行
 lovrabet data create --code <code> --params '{"name":"test","amount":100}'
 ```
+
+### data batchCreate — 批量新建同一数据集记录
+
+```bash
+# 预览
+lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]' --dry-run
+
+# 执行
+lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]'
+```
+
+`--params` 可以是 JSON 数组，也可以是 `{"items":[...]}`。该命令适合同一数据集多条新增，用于减少请求次数。
+
+不要把 `batchCreate` 当作正式业务流程入口。跨多个数据集、upsert、依赖顺序、频率保护、幂等恢复或 handoff 结果要求，应封装在 BFF/CLI service 中，再由内部按需使用 `batchCreate`。BFF 写入类执行仍需先确认业务授权、Studio 权限和人工确认语义；CLI 将 `bff exec` 标记为 `read`，不等同于免审批写入。
 
 ### data update — 更新记录
 

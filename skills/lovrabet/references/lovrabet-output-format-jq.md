@@ -12,6 +12,12 @@
 
 解析顺序：**CLI `--format`** > 配置文件 `format` > 默认（产品默认多为 **compress**，以当前 CLI 版本 `--help` 为准）。
 
+## 结构化输出契约
+
+- `json` / `compress` 只输出机器可读信封，不携带运行时升级提示等交互式 notice。
+- 升级提示只在交互式 `pretty` 输出中写入 stderr，不污染 stdout。
+- 自动化脚本不要依赖 `_notice.update`；需要主动升级时显式执行 `lovrabet update`。
+
 ## 全局 `--jq '<expr>'`
 
 - **作用**：在**最终要打印的整段 JSON 字符串**上执行 **jq** 表达式（与手动 `… \| jq '<expr>'` 一致）。

@@ -50,6 +50,18 @@ lovrabet dataset list --app <name> --name "<关键词>"
 
 ## 命令
 
+### api-doc list/detail — 查看运行态 API 文档
+
+写数据展示 Artifact、personal BFF 或复杂数据访问说明前，先用 API 文档收敛可用接口：
+
+```bash
+lovrabet api-doc list --category dataset
+lovrabet api-doc list --keyword aggregate
+lovrabet api-doc detail --code dataset_data_filter
+```
+
+`api-doc` 是只读文档发现命令，不是通用 HTTP fetch；不要把它替代成任意路径调用。
+
 ### dataset list — 列出数据集
 
 ```bash
@@ -97,6 +109,14 @@ lovrabet dataset detail --code <datasetCode> --verbose
 
 当运行态详情接口未返回 `fields` / `properties` 时，CLI 会从 `dataset list` 兜底字段名，保证 `fieldCount` 和字段名可用于 `data filter`；此时类型、必填、选项等详细字段属性可能为空。
 
+### dataset sdk-doc — 查看 SDK 使用文档
+
+```bash
+lovrabet dataset sdk-doc --code <datasetCode>
+```
+
+`dataset sdk-doc` 只接受 32 位数据集 code，不接受数字 ID。返回为空时，CLI 会给出稳定的空文档提示。
+
 ## 典型工作流
 
 ```bash
@@ -136,3 +156,4 @@ lovrabet data filter --code 2874b19935c240659e8872e9e2416ae3 \
 3. `dataset detail` 返回的字段兼容 v1（properties）和 v2（fields）两种数据集格式；运行态接口未给完整字段时会兜底字段名
 4. 数据集的 code 是 32 位 hex UUID，是所有 `data *` 命令的必填参数
 5. 当业务需求不明确落在哪个 app 时，先验证 `defaultApp`；验证不成立再 `app list`，并用 `dataset list --app <name> --name <关键词>` 做验证式收敛
+6. 写 Artifact 或 personal BFF 前，除非用户已经提供明确数据，否则先用 `api-doc`、`dataset detail`、`dataset sdk-doc` 和只读 `data` 命令确认真实结构

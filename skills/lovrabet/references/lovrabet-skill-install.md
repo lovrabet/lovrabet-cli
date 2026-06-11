@@ -15,6 +15,7 @@ lovrabet skill install
 - 安装的是 GitHub 发布仓库中的 `skills/lovrabet/`
 - 适用于首次安装、重装或刷新本地 Skill
 - 需要本机可访问 npm 与 GitHub
+- 只执行官方 Skill 安装或刷新；不会自动修复本地 npm、网络、Git 或权限问题。失败时保留原始错误，按本机工具配置排查。
 
 ## 跳过外部安装
 

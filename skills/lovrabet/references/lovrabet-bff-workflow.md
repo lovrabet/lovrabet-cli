@@ -4,8 +4,8 @@
 
 ## 前置条件
 
-- `bff detail` 需要 Cookie 认证（`requiresCookieAuth: true`）
-- `bff exec` 使用 SDK 认证，支持 **accessKey（client-ak）**
+- `bff detail` 和 `bff exec` 使用当前 CLI 认证，默认推荐 **accessKey（client-ak）**
+- 需要个人脚本时使用 `personal-bff` 命令组，不要把平台正式 BFF 与 personal BFF 混成同一个资源
 
 ## 先判断 app 是否明确
 
@@ -104,4 +104,5 @@ lovrabet bff exec --name getUserInfo --params '{"userId":123}' --format json
 ## 参考
 
 - [SKILL.md](../SKILL.md)
+- [lovrabet-personal-bff-workflow.md](lovrabet-personal-bff-workflow.md)
 - [instant-api-workflow.md](instant-api-workflow.md)
