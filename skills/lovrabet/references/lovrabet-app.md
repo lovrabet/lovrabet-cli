@@ -2,18 +2,19 @@
 
 `app` 子命令现在分成两类职责：
 
-- **应用目录发现**：通过远端接口和本地 cache 获取当前 AK 可见的应用列表
+- **应用目录发现**：通过远端接口和本地 cache 获取当前 AK 可运行态访问的应用列表
 - **本地用户意图**：通过 `.lovrabet.json` 保存 `defaultApp` 和顶层 `appcode`
 
 > **核心边界**：平台应用列表不再写入 `.lovrabet.json`。`.lovrabet.json` 只保存用户配置；应用目录缓存位于 `~/.lovrabet/cache/...`。
 
-## app list — 列出当前 AK 可见应用
+## app list — 列出当前 AK 可运行态访问应用
 
 ```bash
 lovrabet app list
 lovrabet app list --local
 lovrabet app list --no-cache
 lovrabet app list --env daily
+lovrabet app list --include-unpublished
 ```
 
 | Flag | 说明 |
@@ -21,11 +22,13 @@ lovrabet app list --env daily
 | `--env <env>` | 指定环境，默认当前环境 |
 | `--local` | 只读本地 cache，不打远端 |
 | `--no-cache` | 强制打远端并刷新 cache |
+| `--include-unpublished` | 排查用：包含未发布应用 |
 
 **行为**：
-- 默认：远端优先，成功后刷新 cache
+- 默认：远端优先，成功后刷新 cache，只展示已发布应用
 - 远端失败且本地有 cache：回退到 cache
 - `--local`：只读 cache
+- `--include-unpublished`：仅用于确认未发布应用是否在远端目录或 cache 中；不要把未发布应用作为 `dataset` / `data` / `sql` / `bff` 目标
 - 输出中的 `meta.source` 为 `remote` / `cache` / `mock`
 
 **缓存路径**：
@@ -35,7 +38,7 @@ lovrabet app list --env daily
 ```
 
 **输出**：
-- `data.items`：应用列表
+- `data.items`：应用列表；默认只包含已发布、可运行态访问的应用
 - `data.items[].enableI18n`：应用是否开启国际化；旧缓存或远端缺失该字段时为 `null`
 - `data.items[].languages`：应用支持的语种列表，来自平台真实 `i18nInfo.langs`
 - `data.items[].i18nInfo`：平台返回的应用国际化配置
@@ -45,6 +48,9 @@ lovrabet app list --env daily
 - `data.meta.fetchedAt`：最近同步时间
 - `data.meta.cachePath`：cache 文件路径
 - `data.meta.defaultApp` / `defaultAppSource`：当前默认候选应用决议结果
+- `data.meta.remoteTotal`：远端或 cache 原始应用数量
+- `data.meta.hiddenUnpublishedCount`：默认列表中因未发布被隐藏的应用数量
+- `data.meta.includeUnpublished`：本次是否包含未发布应用
 
 ## 何时应该先跑 app list
 
@@ -53,7 +59,7 @@ lovrabet app list --env daily
 - 用户只说了业务域，没有给 app 线索
 - 当前没有显式 `--appcode` / `--app`，且需求包含业务域、对象名或数据集线索
 - 你怀疑需求可能落在多个 app 中
-- 你需要先确认当前 AK 在该环境下能看到哪些应用
+- 你需要先确认当前 AK 在该环境下有哪些可运行态访问的应用
 - 已经在 `defaultApp` 下按关键词验证过，但没有合理数据集命中
 
 不需要先跑 `app list` 的场景：
@@ -119,6 +125,7 @@ lovrabet app use <name> --global
 **行为**：
 - 应用名来自当前环境 cache 中的远端 app 名称；如果前一步用 `app list --env daily` 查到应用，后续 `app use` 也要带 `--env daily`
 - `app use` 只修改 `defaultApp`
+- 未发布应用不能被设为 `defaultApp`
 - 不会同步或写入整份远端应用目录
 - 如果提示 `App "<name>" not found.`，先确认 `--env` 是否和前一步 `app list` / `app pull` 使用的环境一致，再考虑 `app list --no-cache --env <env>` 刷新缓存
 

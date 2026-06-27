@@ -68,6 +68,8 @@ lovrabet data filter --code <code> --params '{
 
 **--params 结构：**
 
+聚合定义使用 `column` 指定聚合列；`field` 仅作为历史兼容别名，新调用不要使用。
+
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `where` | object | 查询条件 |
@@ -89,20 +91,20 @@ lovrabet data getOne --code <code> --params '{"id":123}'
 ```bash
 # 按状态分组求总金额
 lovrabet data aggregate --code <code> --params '{
-  "aggregate": [{"field":"amount","type":"SUM","alias":"total"}],
+  "aggregate": [{"column": "amount","type":"SUM","alias":"total"}],
   "groupBy": ["status"]
 }'
 
 # 按地区统计活跃订单数
 lovrabet data aggregate --code <code> --params '{
-  "aggregate": [{"field":"id","type":"COUNT","alias":"cnt"}],
+  "aggregate": [{"column": "id","type":"COUNT","alias":"cnt"}],
   "groupBy": ["region"],
   "where": {"status":{"$eq":"active"}}
 }'
 
 # 多维聚合：按状态和地区分组，求总金额并过滤
 lovrabet data aggregate --code <code> --params '{
-  "aggregate": [{"field":"amount","type":"SUM","alias":"total"}],
+  "aggregate": [{"column": "amount","type":"SUM","alias":"total"}],
   "groupBy": ["status","region"],
   "having": [{"columnName":"total","condition":{"$gte":1000}}],
   "orderBy": [{"total":"desc"}]
@@ -127,11 +129,11 @@ lovrabet data aggregate --code <code> --params '{
 
 | type | 说明 | 示例 |
 |------|------|------|
-| `SUM` | 求和 | `{"field":"amount","type":"SUM","alias":"total"}` |
-| `COUNT` | 计数 | `{"field":"id","type":"COUNT","alias":"cnt"}` |
-| `COUNT` (distinct) | 去重计数 | `{"field":"id","type":"COUNT","alias":"cnt","distinct":true}` |
-| `AVG` | 平均值 | `{"field":"score","type":"AVG","alias":"avg_score"}` |
-| `AVG` (rounded) | 带精度平均值 | `{"field":"score","type":"AVG","alias":"avg","round":true,"precision":2}` |
+| `SUM` | 求和 | `{"column": "amount","type":"SUM","alias":"total"}` |
+| `COUNT` | 计数 | `{"column": "id","type":"COUNT","alias":"cnt"}` |
+| `COUNT` (distinct) | 去重计数 | `{"column": "id","type":"COUNT","alias":"cnt","distinct":true}` |
+| `AVG` | 平均值 | `{"column": "score","type":"AVG","alias":"avg_score"}` |
+| `AVG` (rounded) | 带精度平均值 | `{"column": "score","type":"AVG","alias":"avg","round":true,"precision":2}` |
 
 ### data create — 新建记录
 
@@ -198,7 +200,7 @@ lovrabet data delete --code <code> --params '{"id":123}' --yes
 {
   "select": ["category_id"],
   "aggregate": [
-    { "type": "SUM", "field": "amount", "alias": "total_amount", "round": true, "precision": 2 }
+    { "type": "SUM", "column": "amount", "alias": "total_amount", "round": true, "precision": 2 }
   ],
   "where": { "status": { "$eq": "active" } },
   "groupBy": ["category_id"],
