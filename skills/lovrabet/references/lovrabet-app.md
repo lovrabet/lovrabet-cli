@@ -1,11 +1,14 @@
 # app — 应用管理
 
-`app` 子命令现在分成两类职责：
+`app` 子命令现在主要负责应用目录发现和旧命令兼容：
 
 - **应用目录发现**：通过远端接口和本地 cache 获取当前 AK 可运行态访问的应用列表
-- **本地用户意图**：通过 `.lovrabet.json` 保存 `defaultApp` 和顶层 `appcode`
+- **配置导入**：从 `.rabetbase.json` 导入运行态顶层配置
+- **旧命令兼容**：`app init` / `app use` 只保留兼容提示
 
 > **核心边界**：平台应用列表不再写入 `.lovrabet.json`。`.lovrabet.json` 只保存用户配置；应用目录缓存位于 `~/.lovrabet/cache/...`。
+>
+> 给当前工作目录绑定默认应用时，使用 `lovrabet workspace init/use`，不要再用 `app init/use`。
 
 ## app list — 列出当前 AK 可运行态访问应用
 
@@ -103,31 +106,35 @@ lovrabet app pull --no-cache
 - `app pull` **不再**把远端应用列表写入 `.lovrabet.json`
 - 它的职责只是“刷新本地 cache”
 
-## app use — 设置默认候选应用
+## app init — 兼容命令
 
-持久写入 `.lovrabet.json` 的 `defaultApp` 字段。它表示没有更明确 app 线索时的默认候选，不应压过用户本次需求里的业务域线索。
+`app init` 仍可执行旧逻辑，但会提示改用新的工作目录初始化入口：
 
 ```bash
-lovrabet app use <name>
-lovrabet app use <name> --env daily
-lovrabet app use <name> --global
+lovrabet workspace init --appcode <appcode> [--env daily]
+lovrabet workspace init --app <name> [--env daily]
 ```
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `<name>` | string | 必填。应用名 |
+使用 `workspace init` 的原因：
 
-| Flag | 类型 | 默认 | 说明 |
-|------|------|------|------|
-| `--env <env>` | string | 当前环境 | 指定应用名校验时使用的缓存环境：production / development / daily |
-| `--global` | boolean | false | 操作全局配置 `~/.lovrabet.json` |
+- 写入目标更明确：只写当前目录 `.lovrabet.json`
+- 不写 AccessKey
+- 支持直接传 `--appcode`
+- 支持传 `--app` 后由当前 AK 可见的已发布应用解析 appcode
 
-**行为**：
-- 应用名来自当前环境 cache 中的远端 app 名称；如果前一步用 `app list --env daily` 查到应用，后续 `app use` 也要带 `--env daily`
-- `app use` 只修改 `defaultApp`
-- 未发布应用不能被设为 `defaultApp`
-- 不会同步或写入整份远端应用目录
-- 如果提示 `App "<name>" not found.`，先确认 `--env` 是否和前一步 `app list` / `app pull` 使用的环境一致，再考虑 `app list --no-cache --env <env>` 刷新缓存
+## app use — 兼容命令
+
+`app use` 仍保留旧行为，但会提示改用新的工作目录切换入口：
+
+```bash
+lovrabet workspace use --app <name> [--env daily]
+lovrabet workspace use --appcode <appcode> [--env daily]
+lovrabet workspace use --app <name> --appcode <appcode> [--env daily]
+```
+
+`app use` 只用于历史脚本兼容；新文档、新 Skill 和 Agent 行为都应使用 `workspace use`。
+
+详见 [lovrabet-workspace.md](lovrabet-workspace.md)。
 
 ## app import — 从 rabetbase 配置导入
 

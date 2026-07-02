@@ -1,6 +1,6 @@
 # update — 更新 CLI
 
-`lovrabet update` 从 npm registry 查询当前 CLI 包的 dist-tags，不依赖 CDN 配置文件。更新检查完成后会刷新官方 Skill，保证 Agent 本地工作流与 CLI 版本同步。
+`lovrabet update` 从 npm registry 查询当前 CLI 包的 dist-tags，不依赖 CDN 配置文件。更新检查完成后会刷新 CLI Built-in Skill，保证 Agent 本地工作流与 CLI 版本同步。
 
 ## 命令策略
 
@@ -23,7 +23,7 @@ lovrabet update --beta
 # 安装指定版本
 lovrabet update --version 2.0.6
 
-# 只更新 CLI，不刷新 Skill
+# 只更新 CLI，不刷新 CLI Built-in Skill
 lovrabet update --latest --no-skills
 ```
 
@@ -33,8 +33,8 @@ lovrabet update --latest --no-skills
 - 默认目标是 npm `latest` dist-tag
 - `--beta` 目标是 npm `beta` dist-tag
 - `--version` 必须是完整 semver，例如 `2.0.6` 或 `2.0.7-beta.1`
-- 成功检查或更新 CLI 后，默认执行官方 Skill 刷新
-- Skill 刷新失败只报警，不让 CLI 更新失败
+- 成功检查或更新 CLI 后，默认执行 CLI Built-in Skill 刷新
+- CLI Built-in Skill 刷新失败只报警，不让 CLI 更新失败
 
 ## 开源配置点
 
@@ -45,7 +45,7 @@ lovrabet update --latest --no-skills
 | `PRODUCT_CONFIG.cliBinName` | CLI 可执行命令名 |
 | `PRODUCT_CONFIG.cliDisplayName` | 帮助与诊断中的 CLI 展示名 |
 | `PRODUCT_CONFIG.npmPackageName` | npm 包名 |
-| `PRODUCT_CONFIG.skillSource` | 官方 Skill 安装源 |
+| `PRODUCT_CONFIG.skillSource` | CLI Built-in Skill 安装源 |
 | `PRODUCT_CONFIG.npmRegistryBaseUrl` | npm registry 地址 |
 | `PRODUCT_CONFIG.envPrefix` | 环境变量前缀 |
 | `PRODUCT_CONFIG.configFileNames` | 配置文件查找名 |

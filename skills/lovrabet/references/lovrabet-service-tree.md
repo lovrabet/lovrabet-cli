@@ -1,94 +1,260 @@
 # Service Tree 业务服务树
 
-Service Tree 把低层 `data` / `sql` / `bff` 命令映射成面向业务的多级命令，例如 `lovrabet crm customer list`。本地 registry 位于 `~/.lovrabet/service.json`；首期 JSON 文件通常由 Git 管理，再通过 `service import` 安装到本机。
+Service Tree 把底层 `data` / `sql` / `bff` 命令封装成业务命令，例如：
+
+```bash
+lovrabet crm customer list --status active
+lovrabet crm customer detail 10001
+```
+
+本地 registry 位于 `~/.lovrabet/service.json`。首期 manifest 文件通常由 Git 管理，再通过 `service import` 安装到本机。
 
 ## 本地管理命令
 
 ```bash
 lovrabet service validate --file ./lovrabet-services/crm.service.json
+lovrabet service validate --file ~/.lovrabet/service.json
 lovrabet service import --file ./lovrabet-services/crm.service.json --dry-run
 lovrabet service import --file ./lovrabet-services/crm.service.json
+lovrabet service import --file ~/.lovrabet/service.json --dry-run
 lovrabet service list
 lovrabet service detail --service crm
 lovrabet service export --service crm --file ./lovrabet-services/crm.service.json
 lovrabet service remove --service crm
 ```
 
-`service validate` 只校验 JSON 协议，不写入本地 registry。`service import` 会把 manifest 标准化后写入 `~/.lovrabet/service.json`，同一个 `service.code` 再次导入会替换旧版本。`service export` 从本地 registry 导出 Git 可管理的 manifest 文件。`service remove` 只移除本机 registry 条目，不删除 Git 中的 manifest 文件，也不会访问服务端。
+`service validate` 只校验 JSON 协议，不写入本地 registry。`service validate/import --file` 同时接受单个 Service Tree manifest 和本地 registry 文件（`~/.lovrabet/service.json`）；传入 registry 时会逐个校验或导入其中保存的原始 manifest。`service import` 会把 manifest 标准化后写入 `~/.lovrabet/service.json`，同一个服务再次导入会替换旧版本。`service export` 从本地 registry 导出 Git 可管理的单个 manifest 文件。`service remove` 只移除本机 registry 条目，不删除 Git 中的 manifest 文件，也不会访问服务端。
+
+## 意图识别与主动发现
+
+当用户说的是业务目标，而不是底层 CLI 命令时，Agent 应先检查本机是否已经导入对应的业务语义服务。典型业务目标包括“查我的需求”“看项目评论”“列出待处理订单”“客户详情”“库存预警”“工单跟进”等。
+
+首选发现命令：
+
+```bash
+lovrabet service list --format compress
+```
+
+`service list` 是本地只读命令，不需要访问服务端。Agent 应使用返回的服务编码、服务名称、服务说明、命令路径、命令说明和 flags 描述来匹配用户意图。匹配明确时，再查看完整服务定义：
+
+```bash
+lovrabet service detail --service <service> --format compress
+```
+
+随后执行匹配到的动态业务命令：
+
+```bash
+lovrabet <service> [...resourcePath] <action> [flags] --format compress
+```
+
+如果存在多个候选，先把候选服务和命令列给用户确认。Service Tree 未命中不是失败条件，也不代表业务能力不存在；本地 registry 可能只注册了少量高频服务。
+
+没有合理匹配时，保留用户原始业务关键词，继续走常规发现链路：
+
+1. 判断是否已有明确 app 上下文；有当前 app 或默认候选时，先用业务对象词执行 `dataset list --name <关键词>` 验证
+2. 当前 app / 默认候选没有命中，或没有任何 app 线索时，再执行 `lovrabet app list --format compress`，用业务域关键词找 1-2 个候选应用
+3. 对候选应用分别执行 `dataset list --app <应用名> --name <关键词>`，找到最贴近业务对象的数据集
+4. 命中数据集后用 `dataset detail` 确认字段，再执行只读 `data filter/getOne/aggregate`
+5. 需求更像平台能力、SQL 或 BFF 时，查 `api-doc list/detail`，或要求用户补充 `sqlCode` / BFF 标识
+6. 只有 Service Tree、应用列表和常规只读发现都无法收敛目标时，才向用户询问一个最关键的补充信息
+
+用户已经显式给出 `datasetCode`、`sqlCode`、BFF 标识，或明确要求执行底层 `data/sql/bff` 命令时，不需要额外跑 Service Tree 发现。`--appcode` / `--app` 只是应用上下文，不应单独阻止业务服务发现。
+
+## 推荐 Manifest 写法
+
+推荐使用树状结构：`service` 定义服务入口，`resources` 定义业务对象，`actions` 定义动作。最终命令格式是：
+
+```text
+lovrabet <service> <resource path> <action>
+```
+
+最小示例：
+
+```json
+{
+  "service": "crm",
+  "name": "CRM",
+  "description": "Customer relationship business commands.",
+  "app": "app-xxxxxxxx",
+  "resources": {
+    "customer": {
+      "name": "Customer",
+      "datasetCode": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "actions": {
+        "list": {
+          "description": "List customers.",
+          "flags": {
+            "status": "where.status.$eq",
+            "keyword": {
+              "to": "where.customer_name",
+              "op": "$contain",
+              "description": "Customer keyword."
+            }
+          },
+          "defaults": {
+            "currentPage": 1,
+            "pageSize": 20,
+            "orderBy": [{ "updated_at": "desc" }]
+          }
+        },
+        "detail": {
+          "description": "Get one customer by id.",
+          "action": "getOne",
+          "args": ["id"],
+          "map": {
+            "id": {
+              "target": "id",
+              "transform": "number"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+上面会注册两个业务命令：
+
+```bash
+lovrabet crm customer list --status active --keyword 科技
+lovrabet crm customer detail 10001
+```
+
+等价的底层能力分别是：
+
+```bash
+lovrabet data filter --code aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --params '{"where":{"status":{"$eq":"active"},"customer_name":{"$contain":"科技"}},"currentPage":1,"pageSize":20,"orderBy":[{"updated_at":"desc"}]}'
+lovrabet data getOne --code aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --params '{"id":10001}'
+```
+
+## 顶层字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `service` | 服务编码，进入命令路径，例如 `crm`。也兼容 `{ "code": "crm", "name": "CRM" }`。 |
+| `name` / `description` | 展示名称和说明，会出现在 help、schema、doctor 中。 |
+| `app` | 单应用快捷绑定。可写 appcode 或应用名。 |
+| `apps` | 多应用绑定表，例如 `{ "crm": "app-xxx", "order": { "appcode": "app-yyy", "env": "prod" } }`。 |
+| `appBindings` | 兼容旧命名，语义同 `apps`。 |
+| `defaults` | 服务级默认底层参数，会被资源和动作继承。 |
+| `resources` | 业务对象树。每个节点可继续嵌套 `resources`。 |
+
+不要把 `service` 写成 appcode。一个服务可能串联多个应用，`service` 应表达业务域，例如 `crm`、`order`、`store-ops`。
+
+## Resource 字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `name` / `description` | 业务对象展示信息。 |
+| `appRef` | 引用 `apps` / `appBindings` 里的应用别名。只有多应用时通常需要写。 |
+| `datasetCode` | 数据集 code，推荐优先使用。 |
+| `datatable` / `table` | 物理表名。未写 `datasetCode` 时，运行时会按表名解析 dataset code。 |
+| `defaults` / `params` | 资源级默认底层参数，例如分页、排序、固定条件。 |
+| `actions` | 该业务对象上的动作，例如 `list`、`mine`、`detail`、`create`。 |
+| `resources` | 子业务对象。用于 `lovrabet crm customer contact list` 这类更深路径。 |
+
+## Action 字段
+
+| 字段 | 说明 |
+| --- | --- |
+| `description` | 命令说明。 |
+| `action` | 动作简写。默认 `filter`，可写 `getOne`、`create`、`update`、`delete`，也可写 `sql.exec`、`bff.exec`。 |
+| `kind` / `command` | `action` 的展开写法，例如 `{ "kind": "data", "command": "filter" }`。 |
+| `datasetCode` / `datatable` | 覆盖资源继承的数据集定位。 |
+| `sqlCode` | SQL 执行编码，配合 `action: "sql.exec"` 使用。 |
+| `bffCode` / `bffId` / `scriptName` | BFF 执行定位，配合 `action: "bff.exec"` 使用。 |
+| `args` | 位置参数。字符串简写会自动变成必填参数。 |
+| `flags` | 可选参数。推荐对象写法。 |
+| `defaults` / `params` | 动作级默认底层参数。 |
+| `map` / `mapTo` | 显式映射规则。`map` 是推荐短名，`mapTo` 兼容旧名。 |
+| `risk` | 风险等级。只读可省略；写入用 `write`，删除/不可逆操作用 `high-risk-write`。 |
+
+## flags 和 map
+
+`flags` 推荐对象写法：
+
+```json
+{
+  "flags": {
+    "status": "where.status.$eq",
+    "ownerId": {
+      "to": "where.owner_id",
+      "op": "$eq",
+      "type": "number",
+      "transform": "number"
+    },
+    "startDate": {
+      "to": "where.created_at",
+      "op": "$gte"
+    }
+  }
+}
+```
+
+对外使用时，camelCase flag 会自动转成 kebab-case：
+
+```bash
+lovrabet crm customer list --owner-id 12 --start-date 2026-01-01
+```
+
+`map` 适合位置参数、上下文和固定值：
+
+```json
+{
+  "args": ["id"],
+  "map": {
+    "id": { "target": "id", "transform": "number" },
+    "context.userId": { "target": "where.owner_id", "operator": "$eq", "transform": "number" },
+    "const.deleted": { "target": "where.deleted", "operator": "$eq", "value": 0 }
+  }
+}
+```
+
+未带前缀的 `map` key 会按名字自动匹配 `args` 或 `flags`；匹配不到时按 `flags.<name>` 处理。显式来源仍支持 `flags.`、`args.`、`context.`、`ctx.` 和 `const.`。
+
+## 数据集定位
+
+data target 推荐直接配置 `datasetCode`。如果只配置 `datatable` / `table`，动态命令执行时会在当前 app 的数据集列表中按物理表名解析 dataset code；解析失败时命令会停止，并提示补充 `datasetCode` 或确认表名。
 
 ## 发现与诊断
 
 导入后的业务服务会出现在 CLI 发现面：
 
 ```bash
+lovrabet service list --format compress
+lovrabet service detail --service <service> --format compress
 lovrabet --help
 lovrabet schema --format compress
 lovrabet doctor
 ```
 
-`lovrabet --help` 会列出本地已导入服务及其多级业务命令；`lovrabet schema` 会把动态业务命令作为机器可读 command schema 导出；`lovrabet doctor` 会展示本机 registry 路径、加载状态、服务数、命令数和每个服务的 manifest 来源文件。
+`lovrabet service list/detail` 是 Agent 根据业务意图主动发现本机动态服务的轻量入口；`lovrabet --help` 会列出本地已导入服务及其多级业务命令；`lovrabet schema` 会把动态业务命令作为机器可读 command schema 导出；`lovrabet doctor` 会展示本机 registry 路径、加载状态、服务数、命令数和每个服务的 manifest 来源文件。
 
-## 动态业务命令
+动态命令仍走 Lovrabet CLI 的统一 runner：认证、appcode 决议、已发布应用访问限制、risk、dry-run、`--format` 和 `--jq` 都会生效。manifest 的应用绑定只提供默认值；用户显式传入的 `--appcode`、`--app`、`--env` 优先。
 
-导入后，CLI 会在静态命令未命中时尝试匹配本地 Service Tree：
+## 兼容旧格式
 
-```bash
-lovrabet project issues list --status new --format compress
-lovrabet project issues detail 445 --format compress
-lovrabet project solution list --requirement-id 445 --format compress
-lovrabet project comment list --requirement-id 445 --format compress
-```
-
-动态命令仍走 Lovrabet CLI 的统一 runner：认证、appcode 决议、已发布应用访问限制、risk、dry-run、`--format` 和 `--jq` 都会生效。manifest 的 `appBindings` 可提供默认 app/appcode/env；用户显式传入的 `--appcode`、`--app`、`--env` 优先。
-
-## 参数映射
-
-manifest 中的业务字段名可以使用 camelCase，例如 `startDate`；CLI flag 统一使用 kebab-case：
-
-```bash
-lovrabet crm customer list --start-date 2026-01-01
-```
-
-`mapTo` 决定业务参数映射到底层 Lovrabet 原始参数，例如：
+旧版 `commands` 数组仍然可用，但不再作为推荐写法：
 
 ```json
 {
-  "flags.startDate": {
-    "target": "where.created_at",
-    "operator": "$gte"
-  }
+  "service": { "code": "crm", "name": "CRM" },
+  "commands": [
+    {
+      "path": "customer list",
+      "description": "List customers.",
+      "target": {
+        "kind": "data",
+        "command": "filter",
+        "datasetCode": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    }
+  ]
 }
 ```
 
-对应的底层参数等价于：
-
-```bash
-lovrabet data filter --code <datasetCode> --params '{"where":{"created_at":{"$gte":"2026-01-01"}}}'
-```
-
-`mapTo` 也支持运行时上下文来源，当前用于表达“我的数据”等业务语义：
-
-```json
-{
-  "context.userId": {
-    "target": "where.assignee_id",
-    "operator": "$eq",
-    "transform": "number"
-  }
-}
-```
-
-对应业务命令可写成：
-
-```bash
-lovrabet project issues mine
-```
-
-执行时 CLI 会用当前 AccessKey 查询登录用户信息，并把 `context.userId` 映射到底层 `data filter` 参数；不要在 manifest 中硬编码个人用户 ID。
-
-## Dataset 解析
-
-Service Tree 的 data target 推荐直接配置 `datasetCode`。如果只配置 `datatable`，动态命令执行时会在当前 app 的数据集列表中按物理表名解析对应 dataset code；解析失败时命令会停止，并提示补充 `datasetCode` 或确认表名。
+新配置优先使用 `resources/actions`，因为它能自然表达业务对象层级，也避免在 JSON key 或 `path` 里用空格拼命令。
 
 ## 边界
 

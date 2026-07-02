@@ -10,7 +10,7 @@
 这个仓库是 Lovrabet Runtime 能力进入 AI 生态的公开入口：
 
 * `lovrabet` CLI 的公开安装入口
-* 面向 AI IDE / Agent 的 `lovrabet` Skill 安装源
+* 面向 AI IDE / Agent 的 CLI Built-in Skill 安装源
 * 可二开扩展的命令、流程和交付实践参考
 
 ## 安装步骤
@@ -28,15 +28,15 @@ lovrabet --version
 lovrabet --help
 ```
 
-### 2. 安装 Lovrabet Skill
+### 2. 安装 CLI Built-in Skill
 
-如果你在 Cursor、Claude Code、Codex、Windsurf 等支持 `skills` 的 AI 开发环境中使用 Lovrabet，推荐继续安装 Skill：
+如果你在 Cursor、Claude Code、Codex、Windsurf 等支持 `skills` 的 AI 开发环境中使用 Lovrabet，推荐继续安装 CLI Built-in Skill：
 
 ```bash
 npx skills add lovrabet/lovrabet-cli -g -y
 ```
 
-Skill 会把 Lovrabet 的命令使用顺序、应用决议规则、真实查数方法、风险边界和排障经验提供给 AI 助手，减少乱猜 app、乱猜字段、误用写命令的问题，让一次排查和交付过程可以沉淀为可复用的业务操作经验。
+CLI Built-in Skill 会把 Lovrabet 的命令使用顺序、应用决议规则、真实查数方法、风险边界和排障经验提供给 AI 助手，减少乱猜 app、乱猜字段、误用写命令的问题。当前应用/租户在 SkillHub 中的 personal/company 业务 Skill，应在登录并选择应用后通过 `lovrabet skill install` 安装。
 
 ### 3. 登录并开始使用
 
@@ -87,9 +87,9 @@ lovrabet data filter --code <datasetCode> --params '{"currentPage":1,"pageSize":
 
 如果要让 AI 助手帮你生成页面、排查字段格式、判断枚举/日期/数组/JSON 的真实结构，优先先跑 `dataset detail`，再跑 `data filter` 或 `data getOne` 看真实返回。
 
-## Skill 适合什么场景
+## CLI Built-in Skill 适合什么场景
 
-安装 Skill 后，AI 助手更适合处理这些任务：
+安装 CLI Built-in Skill 后，AI 助手更适合处理这些任务：
 
 * 先找正确的 app，再定位 dataset 和字段
 * 用真实数据判断枚举、日期、数组、JSON、空值和 `_label` 字段格式
@@ -113,7 +113,7 @@ skills/lovrabet/
 * 官网：[www.lovrabet.com](https://www.lovrabet.com)
 * 开发文档：[open.lovrabet.com](https://open.lovrabet.com/)
 * CLI 帮助：`lovrabet --help`
-* Skill 说明：[`skills/lovrabet/SKILL.md`](skills/lovrabet/SKILL.md)
+* CLI Built-in Skill 说明：[`skills/lovrabet/SKILL.md`](skills/lovrabet/SKILL.md)
 
 ## License
 

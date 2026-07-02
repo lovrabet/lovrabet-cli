@@ -1,28 +1,25 @@
 # skill install
 
-通过官方 `skills` CLI 全局安装 `lovrabet` 运行态 Skill。
+安装当前应用、当前租户可生效的业务 Skill 到用户级 Agent Skill 目录，让本机 Agent 可发现并使用这些业务 Skill。
 
 ## 用法
 
 ```bash
-lovrabet skill install
+lovrabet skill install [--code <skillCode>]
 ```
 
 ## 说明
 
-- 该命令不依赖 `accessKey` 或 `appcode`
-- 官方安装源：`lovrabet/lovrabet-cli`
-- 安装的是 GitHub 发布仓库中的 `skills/lovrabet/`
-- 适用于首次安装、重装或刷新本地 Skill
-- 需要本机可访问 npm 与 GitHub
-- 只执行官方 Skill 安装或刷新；不会自动修复本地 npm、网络、Git 或权限问题。失败时保留原始错误，按本机工具配置排查。
+- 需要 AccessKey 和 App Code。
+- 默认安装当前应用下当前用户可见的 personal/company 业务 Skill。
+- personal 与 company 出现同一 `skillCode` 时，personal 版本生效。
+- `--code` 只安装指定业务 Skill，并清理该 code 对应的失效链接或 cache。
+- 安装产物面向 Agent 消费，不建议直接编辑；开发或修改业务 Skill 时使用 `lovrabet skill pull` / `lovrabet skill push`。
 
-## 跳过外部安装
+## CLI Built-in Skill
 
-测试或离线场景可设置：
+`lovrabet skill install` 不再安装 CLI 运行时依赖的内置 Skill。需要安装或刷新 CLI Built-in Skill 时使用：
 
 ```bash
-LOVRABET_SKIP_NPX_SKILLS=1 lovrabet skill install
+lovrabet cli-skill install
 ```
-
-此时命令会跳过 `npx` 调用，并假定 Skill 已存在。

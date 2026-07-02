@@ -45,14 +45,14 @@ lovrabet skill validate --dir .agents/skills/invoice-review --strict
 lovrabet skill list
 lovrabet skill list --scope personal
 lovrabet skill list --scope company
-lovrabet skill list --scope builtin
+lovrabet skill list --scope public
 lovrabet skill list --scope all
 lovrabet skill list --code sales_playbook
 lovrabet skill list --local
 lovrabet skill list --local --scope all
 ```
 
-默认查询云端 `personal` 和 `company` Skill，不拉取内容。`--scope builtin` 查询 builtin，`--scope all` 同时返回 personal、company 和 builtin。
+默认查询 SkillHub-backed 云端 effective 业务 Skill，不拉取内容。`--scope all` 同时返回 personal、company 和 public。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 查询。
 
 `--local` 只读取当前 env、AK、App 下 CLI 管理的本地 cache 与 agent 链接，依赖 `lovrabet.skill.json` 识别元数据；它不请求云端、不下载 package、不物化文件，也不清理旧目录。需要查看本地是否已经 pull 到机器上时用 `lovrabet skill list --local`，需要看云端是否存在时用不带 `--local` 的 `lovrabet skill list`。
 
@@ -63,7 +63,7 @@ lovrabet skill pull
 lovrabet skill pull --code sales_playbook
 ```
 
-默认拉取当前 App 下当前 AK 可见的 `personal` 和 `company` Skill，不拉取 `builtin` 或 `public`。
+默认拉取当前 App 下当前 AK 可见的 `personal` 和 `company` 业务 Skill，不拉取 `builtin` 或 `public`。
 
 拉取目录：
 
@@ -75,7 +75,7 @@ lovrabet skill pull --code sales_playbook
 
 - `SKILL.md` 是本地 Agent 可直接发现的入口文件；后端 Skill `content` 缺少 YAML frontmatter 时，CLI 会根据 Skill 元数据补齐 `name` 和 `description`
 - `lovrabet.skill.json` 保存 `appCode`、`skillCode`、`scope`、版本、标签、content hash 等 Lovrabet 元数据
-- 同名 `skillCode` 的 personal 和 company 副本都会保留
+- 同名 `skillCode` 的 personal 和 company 副本都会保留，effective 链接优先 personal
 - 完整 `skill pull` 会移除当前 App 下远端已删除 Skill 对应的 CLI 管理链接和当前 AK 缓存目录；`--code <skillCode>` 只同步和清理指定 code
 
 ## 本地链接
