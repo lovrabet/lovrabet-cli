@@ -1,6 +1,6 @@
-# skill create / validate / list / pull / push
+# skill install / create / validate / list / push
 
-创建本地运行态 Skill 草稿，检查必要元数据，查看云端或本地 CLI 管理的 Skill 列表，同步运行态 Skill 到本地 agent skill 目录，并将本地个人 Skill 改动推回平台。
+安装当前应用业务 Skill，创建本地运行态 Skill 草稿，检查必要元数据，查看云端或本地 CLI 管理的 Skill 列表，并将本地个人 Skill 改动推回平台。
 
 ## 创建本地草稿
 
@@ -45,27 +45,29 @@ lovrabet skill validate --dir .agents/skills/invoice-review --strict
 lovrabet skill list
 lovrabet skill list --scope personal
 lovrabet skill list --scope company
-lovrabet skill list --scope public
 lovrabet skill list --scope all
 lovrabet skill list --code sales_playbook
 lovrabet skill list --local
 lovrabet skill list --local --scope all
 ```
 
-默认查询 SkillHub-backed 云端 effective 业务 Skill，不拉取内容。`--scope all` 同时返回 personal、company 和 public。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 查询。
+默认等价于 `--scope all`，查询 SkillHub-backed 云端 personal 和 company 业务 Skill，不安装、不下载内容。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 查询。
 
-`--local` 只读取当前 env、AK、App 下 CLI 管理的本地 cache 与 agent 链接，依赖 `lovrabet.skill.json` 识别元数据；它不请求云端、不下载 package、不物化文件，也不清理旧目录。需要查看本地是否已经 pull 到机器上时用 `lovrabet skill list --local`，需要看云端是否存在时用不带 `--local` 的 `lovrabet skill list`。
+`--local` 只读取当前 env、AK、App 下 CLI 管理的本地 cache 与 agent 链接，依赖 `lovrabet.skill.json` 识别元数据；它不请求云端、不下载 package、不物化文件，也不清理旧目录。需要查看本地是否已经安装到机器上时用 `lovrabet skill list --local`，需要看云端是否存在时用不带 `--local` 的 `lovrabet skill list`。
 
-## 拉取
+## 安装业务 Skill
 
 ```bash
-lovrabet skill pull
-lovrabet skill pull --code sales_playbook
+lovrabet skill install
+lovrabet skill install --scope all
+lovrabet skill install --scope personal
+lovrabet skill install --scope company
+lovrabet skill install --code sales_playbook
 ```
 
-默认拉取当前 App 下当前 AK 可见的 `personal` 和 `company` 业务 Skill，不拉取 `builtin` 或 `public`。
+默认等价于 `--scope all`，安装当前 App 下当前 AK 可见的 `personal` 和 `company` 业务 Skill，不安装 `builtin`。
 
-拉取目录：
+安装过程会使用当前环境和 AK 指纹隔离的 CLI 管理缓存：
 
 ```text
 ~/.lovrabet/cache/<env>/<ak_fingerprint>/skills/<appCode>/<scope>/<skillCode>/
@@ -76,7 +78,7 @@ lovrabet skill pull --code sales_playbook
 - `SKILL.md` 是本地 Agent 可直接发现的入口文件；后端 Skill `content` 缺少 YAML frontmatter 时，CLI 会根据 Skill 元数据补齐 `name` 和 `description`
 - `lovrabet.skill.json` 保存 `appCode`、`skillCode`、`scope`、版本、标签、content hash 等 Lovrabet 元数据
 - 同名 `skillCode` 的 personal 和 company 副本都会保留，effective 链接优先 personal
-- 完整 `skill pull` 会移除当前 App 下远端已删除 Skill 对应的 CLI 管理链接和当前 AK 缓存目录；`--code <skillCode>` 只同步和清理指定 code
+- 完整 `skill install` 会移除当前 App 下远端已删除 Skill 对应的 CLI 管理链接和当前 AK 缓存目录；`--code <skillCode>` 只同步和清理指定 code
 
 ## 本地链接
 
@@ -98,16 +100,16 @@ lovrabet skill push --dir ./app-1--sales_playbook
 
 `push` 读取目录下的 `SKILL.md`。有 `lovrabet.skill.json` 时优先使用其中的 `skillCode`、名称、描述、标签和版本；没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。
 
-`push` 只创建或更新 personal Skill。若元数据 scope 是 `company`、`builtin` 或 `public`，命令会在调用后端前失败。Skill 子命令包含 `install`、`create`、`validate`、`list`、`pull`、`push`。
+`push` 只创建或更新 personal Skill。若元数据 scope 是 `company` 或 `builtin`，命令会在调用后端前失败。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
 
 ## 与 RuntimeAgent 原生 Skill 工具的关系
 
 CLI 的 Skill 能力是目录同步：
 
+- `skill install`：把当前应用下当前 AK 可见的 personal/company Skill 安装到本地 Agent Skill 目录。
 - `skill create --name <name>`：生成本地自包含 Skill 草稿，不上传。
 - `skill validate --dir <dir>`：检查 Skill 必要元数据。
 - `skill list`：查看云端 Skill 列表；`--local` 查看 CLI 管理的本地 cache 和链接。
-- `skill pull`：把当前应用下当前 AK 可见的 personal/company Skill 拉到本地目录，供本地 Agent 读取。
 - `skill push --dir <dir>`：检查必要上传信息后读取本地目录并创建或更新 personal Skill。
 
 RuntimeAgent 原生的 `skill_load`、`skill_update` 等工具是 Agent 服务内部的资源读写能力，不是 `lovrabet` CLI 命令。写命令步骤时不要把这些原生工具当作 CLI 子命令，也不要要求 coworker 直接调用它们。
