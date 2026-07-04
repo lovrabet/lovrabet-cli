@@ -12,6 +12,18 @@ lovrabet kb search --query "订单审批" --topk 5 --format compress
 
 `kb search` 会返回当前用户可见的公司知识和个人知识，使用 `scope` 区分来源。
 
+## 写入顺序
+
+1. 先确认知识库 title 和 content；内容必须是用户明确提供或已经在对话中确认的信息。
+2. 将正文写入当前 workspace 下的 UTF-8 Markdown 或文本文件，例如 `.lovrabet/kb/<safe-title>.md`。
+3. 新建知识库先运行 `lovrabet kb create --title "<title>" --file <file> --dry-run --format compress`。
+4. 用户明确要求保存时，再运行不带 `--dry-run` 的 `lovrabet kb create`。
+5. 更新知识库时先用 `lovrabet kb list`、`lovrabet kb search --query ...` 或用户提供的 ID 定位条目。
+6. 更新前运行 `lovrabet kb detail --id <id> --format compress`。
+7. 更新先运行 `lovrabet kb update --id <id> --file <file> --dry-run --format compress`。
+8. 用户明确要求保存时，再运行正式 `lovrabet kb update`。
+9. 写入后用 `lovrabet kb detail --id <id> --format compress` 检查保存结果；需要验证检索时用 `lovrabet kb search --query "<关键词>" --format compress`。
+
 ## 创建
 
 知识正文来自本地 UTF-8 文本或 Markdown 文件，不支持内联正文参数：

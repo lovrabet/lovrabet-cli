@@ -61,6 +61,53 @@ CLI 会拒绝以下内容：
 
 当前允许的包：`react`、`react-dom`、`lodash`、`dayjs`、`antd`、`@ant-design/icons`。
 
+## React module host contract
+
+每个 Artifact source 都必须保持以下 host contract。
+
+1. 每次 create 或 update 只能产出一个 `react_module` Artifact。
+2. source 只能 render 一个 host `Container`，不能嵌套 `Container`。
+3. 不能 import 或 render antd `Card`，source 中必须没有 `<Card`。
+4. 只能有一个 default export React component。
+5. default component 必须接收 `props: { env: JsxModulePropsEnv }`。
+6. source 必须保留精确 destructuring 语句：`const { Container, sdkClient, navigate } = env;`。
+7. source 不能包含 `html`、`body`、`script` 或 `style` tags。
+8. 不能调用 `ReactDOM`、`ReactDOM.render` 或 `createRoot`。
+9. 只能从 `react`、`react-dom`、`lodash`、`dayjs`、`antd`、`@ant-design/icons` import。
+10. Artifact 名称使用英文 PascalCase，例如 `SalesInsightCard`、`ProjectStatusCard`、`ComparisonCard`、`WeeklyOpsCard`。
+
+```tsx
+import React from "react";
+import { Button, Typography } from "antd";
+
+interface ContainerProps {
+  className?: string;
+  style?: React.CSSProperties;
+  title?: string;
+  extra?: string | React.ReactNode;
+  children?: React.ReactNode;
+}
+
+interface JsxModulePropsEnv {
+  Container: React.FC<ContainerProps>;
+  sdkClient: any;
+  navigate: (to: string) => void;
+}
+
+export default function ExampleCard({ env }: { env: JsxModulePropsEnv }) {
+  const { Container, sdkClient, navigate } = env;
+
+  return (
+    <Container title="模块标题">
+      <Button type="link" onClick={() => navigate("/chat")}>
+        Chat
+      </Button>
+      <Typography.Text>这里是 module 内容</Typography.Text>
+    </Container>
+  );
+}
+```
+
 ## personal BFF backed Artifact
 
 当 Artifact 需要自定义运行时数据编排时，先创建或复用 personal BFF，并执行一次确认返回形状，再写 Artifact：
@@ -71,3 +118,16 @@ lovrabet artifact create --file ./orders-artifact.tsx --name "Orders" --dry-run
 ```
 
 Artifact 源码应调用宿主 SDK 的 personal BFF 能力，例如 `sdkClient.personalBff.execute({ scriptId, params })`。不要在源码里硬编码运行态域名、cookie、accessKey 或 appCode。
+
+## 保存后观测
+
+正式 `lovrabet artifact create` 或 `lovrabet artifact update` 保存成功后调用 `runtime-observe` 观测保存后的 Artifact。`runtime-observe` 是 sandbox helper，不是 `lovrabet` CLI 命令。只在保存成功后观测；dry-run 成功时不观测。
+
+保存成功后调用 runtime-observe。Artifact debug URL 需要使用应用域名 `appDomain` 和保存后的 `artifactId`：
+
+```text
+daily: https://{appDomain}.daily.lovrabet.com/__debug__?artifactid={artifactId}
+prod:  https://{appDomain}.lovrabet.com/__debug__?artifactid={artifactId}
+```
+
+如果 create/update/detail 输出里没有 `appDomain`，先尝试 `lovrabet app list --format compress` 或已有上下文确认当前应用域名；仍无法确认时，明确说明缺少 appDomain，观测未完成。
