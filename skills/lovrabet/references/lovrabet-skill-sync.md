@@ -98,9 +98,9 @@ lovrabet skill push --dir ~/.lovrabet/cache/production/<ak_fingerprint>/skills/a
 lovrabet skill push --dir ./app-1--sales_playbook
 ```
 
-`push` 读取目录下的 `SKILL.md`。有 `lovrabet.skill.json` 时优先使用其中的 `skillCode`、名称、描述、标签和版本；没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。
+`push` 读取目录下的 `SKILL.md`。有 `lovrabet.skill.json` 时优先使用其中的 `skillCode`、名称、描述、标签和版本；没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
 
-`push` 只创建或更新 personal Skill。若元数据 scope 是 `company` 或 `builtin`，命令会在调用后端前失败。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
+`push` 只创建或更新 personal Skill。若远端刷新后的元数据 scope 是 `company` 或 `builtin`，命令会在上传前失败。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
 
 ## 与 RuntimeAgent 原生 Skill 工具的关系
 

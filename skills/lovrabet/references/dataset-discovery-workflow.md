@@ -93,17 +93,18 @@ lovrabet dataset list --format json
 ```bash
 lovrabet dataset detail --code <datasetCode>
 
-# 返回原始完整 API 响应
-lovrabet dataset detail --code <datasetCode> --verbose
+# 返回 CLI 归一化 JSON 结构
+lovrabet dataset detail --code <datasetCode> --format json
 ```
 
 | Flag | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `--code` | string | **是** | 数据集 code（32 位 hex UUID） |
-| `--verbose` | boolean | 否 | 返回完整原始对象 |
+| `--format` | string | 否 | 输出格式：`json` / `pretty` / `compress` |
 
 返回内容:
 - **字段列表** — name, displayName, type, dbType, pk, required, description, options
+- **关联信息** — `relations` 直接透出接口返回的原始关联信息；结构以服务端返回为准，CLI 不做补全推断
 - **操作列表** — name, method, path（getList, getOne, create, update, delete 等）
 - **统计** — fieldCount, operationCount
 
