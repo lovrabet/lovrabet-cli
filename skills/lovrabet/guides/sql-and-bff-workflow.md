@@ -59,6 +59,18 @@ lovrabet bff detail --id <id>
 lovrabet bff exec --name <functionName> --params '<json>'
 ```
 
+## app-config key 状态检查
+
+`lovrabet app-config get <key>` 只用于按当前 appCode 和 key 检查运行态 app-config 状态：
+
+```bash
+lovrabet app-config get example_api_key --format compress
+```
+
+使用它确认 key 是否已配置、权限是否有效、appCode 路由是否正确。输出只包含 `key`、`tags`、`hasValue`、`valueRedacted`、`gmtModified` 等元数据，不输出明文 value。
+
+示例 key 仅用于说明；实际执行必须使用用户或业务 Skill 明确给出的 key，不能猜测、按 tags 查找或默认使用示例 key。不要把 app-config value 复制到本地配置、缓存、日志、`--params` 或业务 Skill 入参。业务需要使用 value 时，在目标 BFF 中通过 `context.appConfig.get(...)` 读取并消费，不通过 CLI 输出后再传参。
+
 ## personal BFF 工作流
 
 personal BFF 是当前用户在当前应用下维护的个人脚本，适合给 Artifact 做轻量数据编排，或先验证一个临时业务接口的返回形状。

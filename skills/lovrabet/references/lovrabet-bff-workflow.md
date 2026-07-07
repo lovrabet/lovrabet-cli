@@ -93,10 +93,29 @@ lovrabet bff exec --name getUserInfo --params '{"userId":123}'
 lovrabet bff exec --name getUserInfo --params '{"userId":123}' --format json
 ```
 
+## 在 BFF 中读取 app-config
+
+业务需要使用 app-config value 时，在目标 BFF 中通过 `context.appConfig.get("<key>")` 读取并消费，不通过 `lovrabet app-config get` 输出后再传参。
+
+```typescript
+export default async function callVendor(params: { payload: unknown }, context: any) {
+  const apiKey = await context.appConfig.get("vendor_api_key");
+  const result = await callVendorApi(apiKey, params.payload);
+
+  return {
+    ok: true,
+    result,
+  };
+}
+```
+
+这是目标业务 BFF 的内部写法示例，不是推荐创建独立取配置 BFF。value 只在目标 BFF 内用于当前业务动作，不进入 CLI 输出、命令参数或 Agent 对话。
+
 ## 注意
 
 - `--name` 即 BFF 中 `export default function` 后的函数名（`scriptName`），精确匹配
 - `--params` 必须是合法 JSON 字符串
+- 需要确认运行态 app-config key 是否已配置时，用 `lovrabet app-config get <key>` 做状态检查；业务需要使用 value 时，在目标 BFF 中通过 `context.appConfig.get(...)` 读取并消费，不要先获取明文 value 再通过 `--params` 传给 BFF
 - `lovrabet` 没有 `bff list` 命令；脚本列表和 ID 来自用户提供信息、平台 UI、前序上下文，或显式研发态发现 `rabetbase bff list`
 - 当业务归属不清时，先验证 `defaultApp`；验证不成立再 `app list` 做应用决议，再去确认脚本，而不是直接盲猜当前 app
 - 若刚完成研发态 `rabetbase bff push`，用本命令做运行态 smoke。若管理态已同步但运行态仍旧版本，按传播延迟 / 缓存延迟处理：等待后重试，必要时回到研发态精确 force push；多次不生效再记录平台运行态缓存风险

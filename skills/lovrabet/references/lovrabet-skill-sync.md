@@ -100,7 +100,16 @@ lovrabet skill push --dir ./app-1--sales_playbook
 
 `push` 读取目录下的 `SKILL.md`。有 `lovrabet.skill.json` 时优先使用其中的 `skillCode`、名称、描述、标签和版本；没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
 
-`push` 只创建或更新 personal Skill。若远端刷新后的元数据 scope 是 `company` 或 `builtin`，命令会在上传前失败。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
+`push` 默认创建或更新 personal Skill。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
+
+## 公司级发布
+
+```bash
+lovrabet skill push --scope company --dir .agents/skills/sales-playbook --dry-run
+lovrabet skill push --scope company --dir .agents/skills/sales-playbook --confirm-warnings
+```
+
+`push --scope company` 读取本地 Skill 目录并向 SkillHub 提交公司级新版本审核。`--dry-run` 只调用 SkillHub publish validate，不创建版本或审核任务；正式提交使用 `visibility=NAMESPACE_ONLY`，成功后版本进入审核，不代表已经成为 effective Skill。审核通过并需要本机 Agent 使用时，再运行 `lovrabet skill install` 安装已生效版本。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
 
 ## 与 RuntimeAgent 原生 Skill 工具的关系
 
@@ -111,5 +120,6 @@ CLI 的 Skill 能力是目录同步：
 - `skill validate --dir <dir>`：检查 Skill 必要元数据。
 - `skill list`：查看云端 Skill 列表；`--local` 查看 CLI 管理的本地 cache 和链接。
 - `skill push --dir <dir>`：检查必要上传信息后读取本地目录并创建或更新 personal Skill。
+- `skill push --scope company --dir <dir>`：检查本地目录并提交 company Skill 新版本审核。
 
 RuntimeAgent 原生的 `skill_load`、`skill_update` 等工具是 Agent 服务内部的资源读写能力，不是 `lovrabet` CLI 命令。写命令步骤时不要把这些原生工具当作 CLI 子命令，也不要要求 coworker 直接调用它们。

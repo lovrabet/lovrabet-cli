@@ -33,6 +33,18 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 
 如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过 `lovrabet skill push` 保存为个人 Skill。
 
+## 发布公司级版本
+
+本地目录确认可交付后，可提交公司级 Skill 新版本审核：
+
+```bash
+lovrabet skill validate --dir .agents/skills/<skillCode> --strict
+lovrabet skill push --scope company --dir .agents/skills/<skillCode> --dry-run
+lovrabet skill push --scope company --dir .agents/skills/<skillCode> --confirm-warnings --format compress
+```
+
+`push --scope company` 使用 SkillHub `NAMESPACE_ONLY` 可见性提交审核。命令成功只表示新版本已提交 review；审核通过前不要声称该版本已对所有成员生效。需要本机 Agent 使用生效版本时，审核后再执行 `lovrabet skill install --code <skillCode>`。
+
 ## 内容要求
 
 - `SKILL.md` 面向未来 Agent，使用精简 Markdown。
