@@ -162,12 +162,20 @@ lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]'
 ### data update — 更新记录
 
 ```bash
-# 预览
+# 单条预览
 lovrabet data update --code <code> --params '{"id":123,"status":"completed"}' --dry-run
 
-# 执行
+# 单条执行
 lovrabet data update --code <code> --params '{"id":123,"status":"completed"}'
+
+# 批量预览
+lovrabet data update --code <code> --params '{"id":[1,2,3],"status":"completed"}' --dry-run
+
+# 批量执行
+lovrabet data update --code <code> --params '{"id":[1,2,3],"status":"completed"}'
 ```
+
+`id` 支持单值或数组。数组不能为空，id 必须是正整数或数字字符串，一次最多 1000 条。批量更新成功时 CLI 会用稳定 envelope 表达结果：`operation:"update"`、`mode:"batch"`、`ids`、`total`、`result`。为兼容当前运行时 metadata 路径，批量数组 id 会在实际请求体和 dry-run 预览中序列化为逗号字符串，例如 `id:"1,2,3"`；用户输入仍使用数组。底层服务端批量回查仍在 follow-up 中。
 
 ### data delete — 删除记录
 

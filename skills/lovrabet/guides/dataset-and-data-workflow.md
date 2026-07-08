@@ -53,6 +53,8 @@ lovrabet data update --code <datasetCode> --params '<json>'
 lovrabet data delete --code <datasetCode> --params '<json>' --yes
 ```
 
+`data update` 的 `id` 可传单值或数组；批量更新示例：`--params '{"id":[1,2,3],"status":"done"}'`。数组不能为空，一次最多 1000 条。批量数组 id 会在实际请求体和 dry-run 预览中使用逗号字符串兼容运行时解析，用户仍按数组输入。
+
 ## 什么时候只用 `dataset list`
 
 以下情况只用 `dataset list` 就够：
