@@ -19,7 +19,7 @@ lovrabet skill create --name invoice-review --dry-run
   references/output-contract.md
 ```
 
-生成的草稿带有 `【...】` 占位符。frontmatter `description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 只检查 `SKILL.md` 与 frontmatter 必要字段；正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
+生成的草稿带有 `【...】` 占位符。frontmatter `name` 是稳定 `skillCode`，`displayName` 是中文等人类可读展示名，`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 会检查 `SKILL.md` 与 frontmatter 必要字段；缺少顶层 `displayName` 会 warning，但正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
 
 ## 必要元数据检查
 
@@ -75,8 +75,8 @@ lovrabet skill install --code sales_playbook
   lovrabet.skill.json
 ```
 
-- `SKILL.md` 是本地 Agent 可直接发现的入口文件；后端 Skill `content` 缺少 YAML frontmatter 时，CLI 会根据 Skill 元数据补齐 `name` 和 `description`
-- `lovrabet.skill.json` 保存 `appCode`、`skillCode`、`scope`、版本、标签、content hash 等 Lovrabet 元数据
+- `SKILL.md` 是本地 Agent 可直接发现的入口文件；后端 Skill `content` 缺少 YAML frontmatter 时，CLI 会根据 Skill 元数据补齐 `name`、`displayName` 和 `description`；已有 frontmatter 时会同步顶层 `displayName`，但不改写 `name`；即使展示名等于 `skillCode`，也会显式写入 `displayName`
+- `lovrabet.skill.json` 保存 `appCode`、`skillCode`、`scope`、版本、标签、content hash 等 Lovrabet 元数据；展示名以 `SKILL.md` 顶层 `displayName` 为可编辑入口
 - 同名 `skillCode` 的 personal 和 company 副本都会保留，effective 链接优先 personal
 - 完整 `skill install` 会移除当前 App 下远端已删除 Skill 对应的 CLI 管理链接和当前 AK 缓存目录；`--code <skillCode>` 只同步和清理指定 code
 
@@ -98,7 +98,7 @@ lovrabet skill push --dir ~/.lovrabet/cache/production/<ak_fingerprint>/skills/a
 lovrabet skill push --dir ./app-1--sales_playbook
 ```
 
-`push` 读取目录下的 `SKILL.md`。有 `lovrabet.skill.json` 时优先使用其中的 `skillCode`、名称、描述、标签和版本；没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
+`push` 读取目录下的 `SKILL.md`。frontmatter `name` 继续用于推导稳定 `skillCode`；顶层 `displayName` 会作为远端展示名提交到 SkillHub。没有 `displayName` 时，CLI 才回退使用 `lovrabet.skill.json` 中的名称。没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
 
 `push` 默认创建或更新 personal Skill。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
 

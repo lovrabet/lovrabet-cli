@@ -10,6 +10,7 @@
 - `SKILL.md` 必须位于 Skill 目录根部。
 - `lovrabet.skill.json` 必须位于 Skill 目录根部。
 - 需要较长规则、schema、示例或脚本时，放入 `references/`、`scripts/` 或 `assets/`，并在 `SKILL.md` 中说明读取时机。
+- `SKILL.md` frontmatter 中 `name` 固定写稳定 `skillCode`，不要写中文；中文或业务展示名写顶层 `displayName`，即使展示名暂时等于 `skillCode` 也应显式保留。
 
 ## 新建
 
@@ -19,7 +20,7 @@ lovrabet skill validate --dir .agents/skills/<skillCode> --strict
 lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```
 
-`type` 按用途选择 `read`、`write` 或 `trainer`。`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用。
+`type` 按用途选择 `read`、`write` 或 `trainer`。`displayName` 是给人看的展示名，`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用。
 
 ## 更新
 
