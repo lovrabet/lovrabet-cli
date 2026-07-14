@@ -50,7 +50,7 @@ lovrabet app list
 3. 先看详情：
 
 ```bash
-lovrabet bff detail --id <id>
+lovrabet bff detail --name <functionName>
 ```
 
 4. 再执行：

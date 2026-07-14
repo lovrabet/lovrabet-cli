@@ -42,18 +42,14 @@
 ## bff detail — 查看 BFF 详情
 
 ```bash
-lovrabet bff detail --id <scriptId>
-
-# 返回原始完整 API 响应
-lovrabet bff detail --id <scriptId> --verbose
+lovrabet bff detail --name <functionName>
 ```
 
 | Flag | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `--id` | number | **是** | BFF 脚本 ID |
-| `--verbose` | boolean | 否 | 返回完整原始对象 |
+| `--name` | string | **是** | 已知的 BFF ENDPOINT 函数名，精确匹配 |
 
-**输出**：脚本名称、描述、类型（ENDPOINT/COMMON）、脚本内容等。
+**输出**：`appCode`、函数名、描述、版本和更新时间等运行契约。CLI 不返回平台脚本 ID、脚本源码或依赖源码。
 
 ## bff exec — 执行 BFF 函数
 
@@ -80,11 +76,11 @@ lovrabet bff exec --name <functionName> --params '{"key":"value"}'
 # 0. 如果默认候选验证不成立，再看应用目录
 lovrabet app list
 
-# 1. 如果不知道脚本 ID，先从用户提供信息、平台 UI 或前序上下文获取
+# 1. 如果不知道函数名，先从用户提供信息、平台 UI 或前序上下文获取
 #    需要研发态发现时，显式交接到 rabetbase bff list
 
-# 2. 查看 BFF 详情，了解参数结构
-lovrabet bff detail --id 42
+# 2. 精确查看已知 BFF 函数的运行契约
+lovrabet bff detail --name getUserInfo
 
 # 3. 执行 BFF
 lovrabet bff exec --name getUserInfo --params '{"userId":123}'
@@ -113,10 +109,10 @@ export default async function callVendor(params: { payload: unknown }, context: 
 
 ## 注意
 
-- `--name` 即 BFF 中 `export default function` 后的函数名（`scriptName`），精确匹配
+- `--name` 即 BFF 中 `export default function` 后的 `functionName`，精确匹配
 - `--params` 必须是合法 JSON 字符串
 - 需要确认运行态 app-config key 是否已配置时，用 `lovrabet app-config get <key>` 做状态检查；业务需要使用 value 时，在目标 BFF 中通过 `context.appConfig.get(...)` 读取并消费，不要先获取明文 value 再通过 `--params` 传给 BFF
-- `lovrabet` 没有 `bff list` 命令；脚本列表和 ID 来自用户提供信息、平台 UI、前序上下文，或显式研发态发现 `rabetbase bff list`
+- `lovrabet` 没有 `bff list` 命令，也不通过列表接口在本地按名称筛选；函数名来自用户提供信息、平台 UI、前序上下文，或显式研发态发现 `rabetbase bff list`
 - 当业务归属不清时，先验证 `defaultApp`；验证不成立再 `app list` 做应用决议，再去确认脚本，而不是直接盲猜当前 app
 - 若刚完成研发态 `rabetbase bff push`，用本命令做运行态 smoke。若管理态已同步但运行态仍旧版本，按传播延迟 / 缓存延迟处理：等待后重试，必要时回到研发态精确 force push；多次不生效再记录平台运行态缓存风险
 

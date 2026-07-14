@@ -163,12 +163,23 @@ lovrabet data getOne --code aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --params '{"id":100
 | `kind` / `command` | `action` 的展开写法，例如 `{ "kind": "data", "command": "filter" }`。 |
 | `datasetCode` / `datatable` | 覆盖资源继承的数据集定位。 |
 | `sqlCode` | SQL 执行编码，配合 `action: "sql.exec"` 使用。 |
-| `bffCode` / `bffId` / `scriptName` | BFF 执行定位，配合 `action: "bff.exec"` 使用。 |
+| `functionName` | BFF ENDPOINT 函数名，配合 `action: "bff.exec"` 使用。 |
 | `args` | 位置参数。字符串简写会自动变成必填参数。 |
 | `flags` | 可选参数。推荐对象写法。 |
 | `defaults` / `params` | 动作级默认底层参数。 |
 | `map` / `mapTo` | 显式映射规则。`map` 是推荐短名，`mapTo` 兼容旧名。 |
 | `risk` | 风险等级。只读可省略；写入用 `write`，删除/不可逆操作用 `high-risk-write`。 |
+
+BFF 动作示例：
+
+```json
+{
+  "description": "Process an order.",
+  "action": "bff.exec",
+  "functionName": "processOrder",
+  "params": { "source": "service-tree" }
+}
+```
 
 ## flags 和 map
 
