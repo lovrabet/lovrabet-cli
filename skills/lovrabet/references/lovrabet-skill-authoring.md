@@ -11,6 +11,9 @@
 - `lovrabet.skill.json` 必须位于 Skill 目录根部。
 - 需要较长规则、schema、示例或脚本时，放入 `references/`、`scripts/` 或 `assets/`，并在 `SKILL.md` 中说明读取时机。
 - `SKILL.md` frontmatter 中 `name` 固定写稳定 `skillCode`，不要写中文；中文或业务展示名写顶层 `displayName`，即使展示名暂时等于 `skillCode` 也应显式保留。
+- 顶层 `example` 是一条用户可以直接发送、用于触发该 Skill 的推荐话术，例如 `example: 上传这份产品资料`。
+- `example` 可选；缺失、空白或不是单个标量时，`lovrabet skill validate` 会给出 warning，但不阻断 push。
+- 不要把正文说明、内部 CLI 命令、执行步骤或多个示例写入 `example`，也不要自动生成该字段。
 
 ## 新建
 
@@ -20,7 +23,7 @@ lovrabet skill validate --dir .agents/skills/<skillCode> --strict
 lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```
 
-`type` 按用途选择 `read`、`write` 或 `trainer`。`displayName` 是给人看的展示名，`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用。
+`type` 按用途选择 `read`、`write` 或 `trainer`。`displayName` 是给人看的展示名，`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用；`example` 则是一句推荐给用户直接发送的最简触发话术。
 
 ## 更新
 
@@ -33,6 +36,17 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```
 
 如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过 `lovrabet skill push` 保存为个人 Skill。
+
+## 发布扫描告警
+
+personal `skill push --dry-run` 会用 `visibility=PRIVATE` 调用 SkillHub publish validate，提前返回正式发布会遇到的 errors 和 warnings。errors 始终阻断；正式 push 遇到 warnings 时会展示告警并停止。人工复核后，personal 或 company push 都需显式添加 `--confirm-warnings`，提交未经改写的同一份包。CLI 不根据 warning 文案自行分类。
+
+发布扫描告警是打包反馈，不是修改业务 Skill 的授权。不要为了通过扫描删除、替换或改写业务 Skill 中的标识、映射、路径、规则、scripts 或 references。先确认告警内容：
+
+- 真实问题（例如明文凭证、违规扩展名或内容格式不匹配）：personal push 不会因 warning 自动停止，仍需根据返回结果尽快修复；涉及凭证时还必须轮换。
+- 已确认的误报：保留源码，不要创建内容不同的临时发布副本。
+
+CLI 不自动创建脱敏包，也不自动改写源 Skill。
 
 ## 发布公司级版本
 

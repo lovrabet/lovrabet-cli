@@ -48,7 +48,9 @@ lovrabet ocr recognize --scene invoice --image-file ./invoice.png --format compr
 
 文件上传和临时 URL 的细节见 [文件上传工作流](lovrabet-file-workflow.md)。
 
-当前 OCR 输入必须二选一：`--image-file` 或 `--image-url`。当前服务端上传接口不返回稳定 `fileId`，OCR 接口也不接受 `fileId`，所以 CLI 不暴露 `--file-id`；不要把 `filePath` 当作 `fileId` 使用。
+OCR 本地文件链路只需要短效 URL 作为中间输入，不要为 OCR 追加 `file query-url --long-term`。3 年长期 URL 仅用于富文本、Markdown、HTML 等必须把静态 URL 写入长期业务内容的场景。
+
+当前 OCR 输入必须二选一：`--image-file` 或 `--image-url`。`filePath` 需要先通过 `file query-url` 换成可访问 URL 后，才能作为 OCR URL 输入。
 
 ## 结果处理
 

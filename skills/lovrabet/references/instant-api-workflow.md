@@ -42,6 +42,10 @@ lovrabet data <command> --code <datasetCode> --params '<json>'
 
 `--params` JSON 就是 API 请求体，无额外封装。
 
+### 超长整数标识
+
+运行态数据中的 BIGINT 标识可能超过 JavaScript 安全整数范围。CLI 会在首次解析响应时把这类整数字面量保留为字符串，避免相邻标识被舍入成同一个值；`--params` 中超过安全范围的整数也会按字符串传递。业务编排仍应把商品、SKU、品牌等标识当作不透明字符串，不对标识执行算术、`Number(...)` 或 `parseInt(...)`。已经被其他工具解析成不安全 `number` 的值无法靠后续 `tostring` 恢复，应重新从无损边界读取。
+
 ## 各命令详解
 
 ### data filter — 条件查询
