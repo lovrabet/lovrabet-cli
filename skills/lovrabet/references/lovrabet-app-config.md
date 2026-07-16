@@ -1,8 +1,8 @@
-# app-config — 运行态 app-config key 状态检查
+# app-config — 运行态 app-config value 查询
 
-按当前应用和配置 key 做只读状态检查，确认运行态 app-config key 是否已配置、当前 AccessKey 是否可读取、应用路由是否正确。
+按当前应用和配置 key 读取运行态 app-config value。
 
-app-config 用于应用维度的运行态配置管理。`app-config get` 只检查指定 key 的配置状态和可读性，默认不输出 value，以降低配置内容进入日志、命令参数或 Agent 对话的风险。
+app-config 用于应用维度的运行态配置管理。`app-config get` 直接输出 value，返回值可能包含敏感信息。
 
 ## app-config get
 
@@ -16,34 +16,26 @@ lovrabet app-config get <key>
 
 **风险等级**：`read`
 
-**输出**：只返回脱敏元数据：
+**输出**：`data` 为 value 的具体结果：
 
 ```json
 {
   "ok": true,
   "command": "lovrabet app-config get",
   "risk": "read",
-  "data": {
-    "appCode": "app-xxxxxxxx",
-    "key": "example_api_key",
-    "tags": ["example"],
-    "hasValue": true,
-    "valueRedacted": true,
-    "gmtModified": "2026-06-23T10:00:00+08:00",
-    "gmtCreate": ""
-  }
+  "data": "example-value"
 }
 ```
 
 ## 边界
 
-- `lovrabet app-config get` 不支持 `--reveal`，不会输出明文 value。
+- `lovrabet app-config get` 不支持 `--reveal`，命令直接输出 value。
 - `lovrabet` 不提供 app-config 的 set/delete/list 管理入口。
 - 不要把 app-config value 写入 `.lovrabet.json`、缓存、日志、命令参数或业务 Skill 入参。
-- 它只用于检查 key 是否已配置、权限是否有效、appCode 路由是否正确，不作为业务 Skill 默认取值入口。
+- 输出可能是敏感值，Agent 只在用户明确要求查询指定 key 时执行。
 - 示例 key 仅用于说明；实际执行必须使用调用方明确给出的 key，不能猜测、按 tags 查找或默认使用示例 key。
-- 业务需要使用 app-config value 时，在目标 BFF 中通过 `context.appConfig.get(...)` 读取并消费，见 [lovrabet-bff-workflow.md](lovrabet-bff-workflow.md)；客户端或 Agent 不先 reveal 再传参。
-- 输出中的 `valueRedacted: true` 只表示 CLI 已脱敏展示，不表示后端加密状态。
+- Agent 执行 Skill 需要 value 时也调用该 CLI，不创建或复用取配置 BFF。
+- value 只在当前任务内消费；除非用户明确要求查看，最终答复默认不重复展示。
 
 ## 示例
 
@@ -56,5 +48,4 @@ lovrabet app-config get example_api_key --format compress
 ## 参考
 
 - [SKILL.md](../SKILL.md)
-- [lovrabet-bff-workflow.md](lovrabet-bff-workflow.md)
 - [lovrabet-output-format-jq.md](lovrabet-output-format-jq.md)
