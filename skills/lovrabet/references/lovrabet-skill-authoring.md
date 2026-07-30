@@ -15,15 +15,27 @@
 - `example` 可选；缺失、空白或不是单个标量时，`lovrabet skill validate` 会给出 warning，但不阻断 push。
 - 不要把正文说明、内部 CLI 命令、执行步骤或多个示例写入 `example`，也不要自动生成该字段。
 
+### Thin Prompt，Thick Skill
+
+用户 Prompt 只表达本次任务相对于稳定契约发生变化的目标、对象、范围等变量；稳定规则、执行步骤、能力标识、输出契约、安全边界和降级策略由业务 Skill 承载，不要求用户重复输入。
+
+- `example`：一句用户可直接发送的最简典型诉求。
+- `description`：说明触发语义以及何时使用或不使用。
+- `SKILL.md` 与其明确引用的 `references/`：承载完整稳定契约。
+
+如果用户必须在每次 Prompt 中重复 Skill 名称、内部命令或完整规则才能正确触发和执行，应优先补齐 `description` 或 Skill 契约，而不是继续加长 Prompt。
+
 ## 新建
 
 ```bash
-lovrabet skill create --name "<skill-name>" --type read --dir .agents/skills/<skillCode>
+lovrabet skill create --name "<skillCode>" --type read --target .agents/skills
 lovrabet skill validate --dir .agents/skills/<skillCode> --strict
 lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```
 
-`type` 按用途选择 `read`、`write` 或 `trainer`。`displayName` 是给人看的展示名，`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用；`example` 则是一句推荐给用户直接发送的最简触发话术。
+业务 Skill 模板类型仅支持 `read | write`。Agent 必须根据业务目标显式传入 `--type`；无法判断是否存在业务副作用时，停止并请求澄清。仅查询、汇总或核对且不改变业务状态时选择 `read`；涉及创建、更新、删除、状态流转、发送、发布或上传等业务副作用时选择 `write`，并在 Skill 契约中定义预览、用户确认、正式执行、读回核对和失败恢复。
+
+`displayName` 是给人看的展示名，`description` 是触发依据，要说明 Skill 做什么、什么时候使用、什么时候不要使用；`example` 则是一句推荐给用户直接发送的最简触发话术。
 
 ## 更新
 

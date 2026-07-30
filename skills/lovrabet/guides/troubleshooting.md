@@ -59,24 +59,6 @@ lovrabet app list --no-cache
 - 当前 `accessKey` 看不到这个 app
 - 或 `defaultApp` 名称本身已过时
 
-## `app import` 失败
-
-如果报：
-
-- `Legacy / multi-app .rabetbase.json is no longer supported for import.`
-
-先执行：
-
-```bash
-rabetbase project upgrade
-```
-
-再重新导入：
-
-```bash
-lovrabet app import --file /path/to/.rabetbase.json
-```
-
 ## `app list --local` 没数据
 
 说明本地还没有建立 cache，或者 cache 已清空。

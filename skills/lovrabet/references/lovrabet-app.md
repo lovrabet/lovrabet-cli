@@ -3,7 +3,6 @@
 `app` 子命令现在主要负责应用目录发现和旧命令兼容：
 
 - **应用目录发现**：通过远端接口和本地 cache 获取当前 AK 可运行态访问的应用列表
-- **配置导入**：从 `.rabetbase.json` 导入运行态顶层配置
 - **旧命令兼容**：`app init` / `app use` 只保留兼容提示
 
 > **核心边界**：平台应用列表不再写入 `.lovrabet.json`。`.lovrabet.json` 只保存用户配置；应用目录缓存位于 `~/.lovrabet/cache/...`。
@@ -135,20 +134,6 @@ lovrabet workspace use --app <name> --appcode <appcode> [--env daily]
 `app use` 只用于历史脚本兼容；新文档、新 Skill 和 Agent 行为都应使用 `workspace use`。
 
 详见 [lovrabet-workspace.md](lovrabet-workspace.md)。
-
-## app import — 从 rabetbase 配置导入
-
-从升级后的 `.rabetbase.json` 导入运行态顶层配置。
-
-```bash
-lovrabet app import --file /path/to/.rabetbase.json
-```
-
-如果源文件还是 legacy / multi-app 结构，先执行：
-
-```bash
-rabetbase project upgrade
-```
 
 ## 参考
 

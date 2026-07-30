@@ -90,7 +90,7 @@ X-User-AK: <redacted>
 会返回：
 
 - 当前 AccessKey 对应的登录用户信息
-- 常见字段如 `id`、`userName`、`loginName`、`tenantCode`
+- 常见字段如 `id`、`userName`、`loginName`
 - `meta.env`，方便确认当前请求落在哪个环境
 
 **适用场景**：

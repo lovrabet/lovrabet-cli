@@ -41,24 +41,28 @@ lovrabet service list --format compress
 lovrabet service detail --service <service> --format compress
 ```
 
-随后执行匹配到的动态业务命令：
+`service detail` 只读取本地 registry 中已导入的 manifest、标准化绑定和来源信息，不是服务端实时契约。对本地文件来源，返回的 `version`、`importedAt`、`source.path` 和 `source.hash` 可用于核对版本与来源；其他来源应使用与来源类型匹配的来源、新鲜度和兼容性证据，字段缺失本身不是拒绝理由。它可以验证本机路由，却不能证明绑定目标仍已发布、参数未变化或副作用明确；执行前还要使用目标能力支持的可信契约验证通道，并只使用该通道实际返回的字段。
+
+Service Tree 只负责定位入口，不单独证明稳定业务规则已经固化。若绑定目标是 Dataset，稳定规则还必须由业务 Skill、已治理 Dataset 契约或其他平台已确认契约承载；缺少规则契约时只能用于简单低风险事实查询。
+
+完成契约、真实副作用和用户授权判断后，才执行匹配到的动态业务命令：
 
 ```bash
 lovrabet <service> [...resourcePath] <action> [flags] --format compress
 ```
 
-如果存在多个候选，先把候选服务和命令列给用户确认。Service Tree 未命中不是失败条件，也不代表业务能力不存在；本地 registry 可能只注册了少量高频服务。
+Service Tree 精确命中时，先把已经绑定的执行入口只作为候选路由。取得与来源类型匹配的来源、新鲜度和兼容性证据，并确认与当前可信业务 Skill 或平台契约没有冲突后，才复用该入口。本地文件来源可以使用 `version`、`importedAt` 和 `source.hash`；后续来源使用各自适配器提供的证据，不把当前字段组合固化为永久门禁。无法确认来源或适用范围时，不得仅凭精确命中执行稳定规则。执行前仍要核对绑定目标、真实副作用和用户授权。
 
-没有合理匹配时，保留用户原始业务关键词，继续走常规发现链路：
+出现弱命中、多个候选或术语边界不清时，先用 `kb search` 做语义消歧。KB 召回只生成候选；Service Tree 候选先用本地 `service detail` 核对绑定，再使用目标能力支持的可信契约验证通道。消歧后仍有多个合理候选时，再列给用户确认。
 
-1. 判断是否已有明确 app 上下文；有当前 app 或默认候选时，先用业务对象词执行 `dataset list --name <关键词>` 验证
-2. 当前 app / 默认候选没有命中，或没有任何 app 线索时，再执行 `lovrabet app list --format compress`，用业务域关键词找 1-2 个候选应用
-3. 对候选应用分别执行 `dataset list --app <应用名> --name <关键词>`，找到最贴近业务对象的数据集
-4. 命中数据集后用 `dataset detail` 确认字段，再执行只读 `data filter/getOne/aggregate`
-5. 需求更像平台能力、SQL 或 BFF 时，查 `api-doc list/detail`，或要求用户补充 `sqlCode` / BFF 标识
-6. 只有 Service Tree、应用列表和常规只读发现都无法收敛目标时，才向用户询问一个最关键的补充信息
+Service Tree 未命中不是失败条件，也不代表业务能力不存在。本地 registry 可能只注册少量高频服务。没有合理匹配时：
 
-用户已经显式给出 `datasetCode`、`sqlCode`、BFF 标识，或明确要求执行底层 `data/sql/bff` 命令时，不需要额外跑 Service Tree 发现。`--appcode` / `--app` 只是应用上下文，不应单独阻止业务服务发现。
+1. 先区分简单低风险事实、稳定规则和高风险确定性判断。
+2. 简单低风险事实可以继续做 app、Dataset 决议，并使用只读 Instant API。
+3. 稳定规则或高风险确定性判断不得直接退化为 Dataset 字段拼装；没有可信能力时输出局部“不判定”，并说明缺少的能力契约。
+4. 只有现有上下文、KB 和只读发现都不能收敛时，才向用户询问一个最关键的补充信息。
+
+用户已经显式给出 `datasetCode`、`sqlCode`、Backend Function 标识，或明确要求执行底层 `data/sql/bff` 命令时，不需要额外跑 Service Tree 发现，直接进入对应 Detail。`--appcode` / `--app` 只是应用上下文，不应单独阻止业务服务发现。
 
 ## 推荐 Manifest 写法
 
@@ -163,14 +167,14 @@ lovrabet data getOne --code aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --params '{"id":100
 | `kind` / `command` | `action` 的展开写法，例如 `{ "kind": "data", "command": "filter" }`。 |
 | `datasetCode` / `datatable` | 覆盖资源继承的数据集定位。 |
 | `sqlCode` | SQL 执行编码，配合 `action: "sql.exec"` 使用。 |
-| `functionName` | BFF ENDPOINT 函数名，配合 `action: "bff.exec"` 使用。 |
+| `functionName` | Backend Function ENDPOINT 名称，配合 `action: "bff.exec"` 使用。 |
 | `args` | 位置参数。字符串简写会自动变成必填参数。 |
 | `flags` | 可选参数。推荐对象写法。 |
 | `defaults` / `params` | 动作级默认底层参数。 |
 | `map` / `mapTo` | 显式映射规则。`map` 是推荐短名，`mapTo` 兼容旧名。 |
 | `risk` | 风险等级。只读可省略；写入用 `write`，删除/不可逆操作用 `high-risk-write`。 |
 
-BFF 动作示例：
+Backend Function 动作示例：
 
 ```json
 {
@@ -272,4 +276,4 @@ lovrabet doctor
 - Service Tree 本地 registry 是运行态发现和执行入口，不是服务端配置中心。
 - `service import/export` 只管理本机 `~/.lovrabet/service.json`，不会上传服务端。
 - 动态命令不会绕过应用发布状态和当前 AK 权限。
-- rabetbase-cli 不管理 runtime registry；如需研发态元数据辅助，应显式使用 rabetbase 的 dataset/sql/bff/page 命令。
+- Runtime registry 只消费 manifest 中已经绑定的目标，不枚举 SQL、函数源码或其他实现资产。

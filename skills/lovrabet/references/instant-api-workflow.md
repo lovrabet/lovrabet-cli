@@ -42,6 +42,12 @@ lovrabet data <command> --code <datasetCode> --params '<json>'
 
 `--params` JSON 就是 API 请求体，无额外封装。
 
+### Backend Function HOOK
+
+Backend Function HOOK 绑定到某个 Dataset 的一个具体 Instant API operation 及 BEFORE/AFTER 节点。Agent 不直接调用 HOOK；HOOK 是否已绑定必须来自可信业务 Skill 或平台已确认契约。绑定已确认时，执行对应的 `data` 命令会进入 Instant API 请求管线；服务端成功解析并加载绑定脚本时，HOOK 会在同一管线中执行。
+
+`--dry-run` 不会触发 HOOK，它只预览 CLI 将发送的请求。基础访问权限由平台 RBAC 控制；HOOK 仅用于补充个性化校验和处理。已成功加载并执行的 BEFORE HOOK 失败时会阻止对应 Instant API 主操作；绑定查询或脚本加载异常会记录日志并跳过 HOOK，补充逻辑可能被跳过，因此不得把 HOOK 作为必须强制执行的合规或业务校验唯一保障。AFTER HOOK 失败时不能据此断言主操作已回滚，也不能直接重试。对于写操作，先按业务唯一键只读回查主记录和必要的后置结果，再依据可信的事务、幂等或可重试契约决定下一步。
+
 ### 超长整数标识
 
 运行态数据中的 BIGINT 标识可能超过 JavaScript 安全整数范围。CLI 会在首次解析响应时把这类整数字面量保留为字符串，避免相邻标识被舍入成同一个值；`--params` 中超过安全范围的整数也会按字符串传递。业务编排仍应把商品、SKU、品牌等标识当作不透明字符串，不对标识执行算术、`Number(...)` 或 `parseInt(...)`。已经被其他工具解析成不安全 `number` 的值无法靠后续 `tostring` 恢复，应重新从无损边界读取。
@@ -161,7 +167,7 @@ lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]'
 
 `--params` 可以是 JSON 数组，也可以是 `{"items":[...]}`。该命令适合同一数据集多条新增，用于减少请求次数。
 
-不要把 `batchCreate` 当作正式业务流程入口。跨多个数据集、upsert、依赖顺序、频率保护、幂等恢复或 handoff 结果要求，应封装在 BFF/CLI service 中，再由内部按需使用 `batchCreate`。BFF 写入类执行仍需先确认业务授权、Studio 权限和人工确认语义；CLI 将 `bff exec` 标记为 `read`，不等同于免审批写入。
+不要把 `batchCreate` 当作正式业务流程入口。跨多个数据集、upsert、依赖顺序、频率保护、幂等恢复或 handoff 结果要求，应封装在 Backend Function/CLI service 中，再由内部按需使用 `batchCreate`。Backend Function 写入类执行仍需先确认业务授权、Studio 权限和人工确认语义；CLI 将 `bff exec` 标记为 `read`，不等同于免审批写入。
 
 ### data update — 更新记录
 

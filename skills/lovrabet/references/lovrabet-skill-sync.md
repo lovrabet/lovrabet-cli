@@ -7,7 +7,7 @@
 ```bash
 lovrabet skill create --name invoice-review --type write
 lovrabet skill create --name customer-summary --type read --target ./skills
-lovrabet skill create --name invoice-review --dry-run
+lovrabet skill create --name invoice-review --type write --dry-run
 ```
 
 `create` 只写本地文件，不需要 AK、不需要 appcode、不上传、不发布、不写业务数据。默认生成：
@@ -19,7 +19,7 @@ lovrabet skill create --name invoice-review --dry-run
   references/output-contract.md
 ```
 
-生成的草稿带有 `【...】` 占位符。frontmatter `name` 是稳定 `skillCode`，`displayName` 是中文等人类可读展示名，`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 会检查 `SKILL.md` 与 frontmatter 必要字段；缺少顶层 `displayName` 会 warning，但正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
+生成的草稿带有 `【...】` 占位符。Agent 必须根据业务目标显式传入 `--type read|write`；无法判断是否存在业务副作用时停止并请求澄清。frontmatter `name` 是稳定 `skillCode`，`displayName` 是中文等人类可读展示名，`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 会检查 `SKILL.md` 与 frontmatter 必要字段；缺少顶层 `displayName` 会 warning，但正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
 
 ## 必要元数据检查
 
@@ -34,8 +34,8 @@ lovrabet skill validate --dir .agents/skills/invoice-review --strict
 
 - 根目录存在普通文件 `SKILL.md`。
 - `SKILL.md` 以 frontmatter 开头。
-- frontmatter 中 `name`、`description`、`metadata.type` 非空。
-- `metadata.type` 必须是 `write`、`read` 或 `trainer`。
+- frontmatter 中 `name`、`description` 非空。
+- `metadata.type` 可选；若填写，必须是 `write` 或 `read`。
 
 正文内容、章节名称、`references/*`、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。
 
@@ -116,7 +116,7 @@ lovrabet skill push --scope company --dir .agents/skills/sales-playbook --confir
 CLI 的 Skill 能力是目录同步：
 
 - `skill install`：把当前应用下当前 AK 可见的 personal/company Skill 安装到本地 Agent Skill 目录。
-- `skill create --name <name>`：生成本地自包含 Skill 草稿，不上传。
+- `skill create --name <name> --type read|write`：生成本地自包含 Skill 草稿，不上传。
 - `skill validate --dir <dir>`：检查 Skill 必要元数据。
 - `skill list`：查看云端 Skill 列表；`--local` 查看 CLI 管理的本地 cache 和链接。
 - `skill push --dir <dir>`：检查必要上传信息后读取本地目录并创建或更新 personal Skill。

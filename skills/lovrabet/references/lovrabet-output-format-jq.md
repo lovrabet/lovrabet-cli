@@ -1,6 +1,6 @@
-# 输出格式与全局 `--jq`（与 rabetbase-cli 对齐）
+# 输出格式与全局 `--jq`
 
-运行态 `lovrabet` 与研发态 `rabetbase` 在声明式管线上使用同一套约定：**结构化输出**、**compress 默认偏好**、**全局 `--jq`**。
+运行态 `lovrabet` 的声明式命令统一支持**结构化输出**、**compress 默认偏好**和**全局 `--jq`**。
 
 ## `--format`
 
@@ -21,7 +21,7 @@
 ## 全局 `--jq '<expr>'`
 
 - **作用**：在**最终要打印的整段 JSON 字符串**上执行 **jq** 表达式（与手动 `… \| jq '<expr>'` 一致）。
-- **适用**：仅当本次输出走 **`--format json` 或 `compress`** 时；若当前为 `pretty` 且你传了 `--jq`，管线会将格式**升格为 json** 再跑 jq（与 rabetbase 一致）。
+- **适用**：仅当本次输出走 **`--format json` 或 `compress`** 时；若当前为 `pretty` 且你传了 `--jq`，管线会将格式**升格为 json** 再跑 jq。
 - **信封**：表达式作用在**完整信封**上，取业务数据多用 **`.data…`**（例如 `.data.items`、`.data.datasets[]`）。
 - **二进制**：按 **`JQ_PATH` → CLI 内置 sidecar jq → `PATH` 上的 jq** 的顺序解析。若显式设置了 **`JQ_PATH`**，它必须指向一个真实可执行文件；否则命令会直接报错，不会静默回退。
 
@@ -38,7 +38,3 @@ lovrabet dataset detail --code <数据集编码> --format json --jq '.data | {fi
 ## 不适用 `--jq` 的命令
 
 声明式命令里若 **`hasFormat: false`**（例如 `lovrabet doctor`），输出由命令自控，**不参与**上述 `--format` / `--jq` 管线，传 `--jq` 无意义。
-
-## 与 rabetbase 的关系
-
-语义与 **rabetbase-cli** 的 `framework/runner` + `formatOutput` + `apply-jq-filter` **对齐**；差别仅在于子命令集合与默认 `format` 偏好可能不同，以各自 `--help` 为准。
