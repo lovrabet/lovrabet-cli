@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.1.18
+version: 2.1.19
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、Artifact、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、service tree、业务服务树、api-doc、dataset、data filter、artifact、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -283,7 +283,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **service** | `remove` | 从本地 registry 移除 Service Tree manifest | write | 本地 |
 | **service** | `list` | 列出本地已导入业务服务树 | read | 本地 |
 | **service** | `detail` | 查看本地业务服务树详情 | read | 本地 |
-| **skill** | `install` | 安装当前应用业务 Skill 到用户级 Agent Skill 目录 | write | AK |
+| **skill** | `install` | 安装当前应用业务 Skill 到用户级 Agent Skill 目录，可显式安装到当前项目 | write | AK |
 | **skill** | `create` | 本地生成自包含运行态 Skill 草稿 | write | 本地 |
 | **skill** | `validate` | 检查本地 Skill 必要元数据 | read | 本地 |
 | **skill** | `list` | 查看云端或本地 CLI 管理的运行态 Skill 列表 | read | AK |
@@ -341,6 +341,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 |------|------|
 | 安装 / 刷新 CLI Built-in Skill | `lovrabet cli-skill install` |
 | 安装当前应用业务 Skill | `lovrabet skill install` |
+| 安装当前应用业务 Skill 到当前项目 | `lovrabet skill install --project` |
 | 创建本地业务 Skill 草稿 | `lovrabet skill create --name <skill-name> --type read|write` |
 | 检查 Skill 必要元数据 | `lovrabet skill validate --dir <dir> [--strict]` |
 | 查看云端 Skill 列表 | `lovrabet skill list [--scope all|personal|company]` |
@@ -548,7 +549,7 @@ lovrabet artifact create --file ./orders-artifact.tsx --name "Orders" --dry-run
 
 Agent 执行 Skill 需要 app-config value 时，也调用 `lovrabet app-config get <key>` 获取，并只在当前任务内消费。不要为读取配置创建或复用 Backend Function，也不要把 value 再放入其他 CLI 的命令参数。除非用户明确要求查看具体值，最终答复默认只说明读取和使用结果，不重复展示 value。
 
-`lovrabet skill install/create/validate/list/push` 是 CLI 的 Skill 工作流：install 安装当前应用 personal/company 业务 Skill 到用户级 Agent Skill 目录，create 只生成本地自包含草稿，validate 检查 `SKILL.md` 与 frontmatter 必要字段，list 查看 SkillHub-backed 云端列表或本地 CLI 管理的 cache/链接，push 默认创建或更新 personal Skill，`push --scope company` 提交公司级 Skill 新版本审核。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 管理，也不能 push 或提审。`skill list --local` 只读本地元数据，不下载、不物化、不清理。`skill push` 上传前先检查 `SKILL.md` 和 frontmatter 必要字段，再用本地 skillCode 在当前 App namespace 下精确查询远端 Skill 并把远端 metadata 写回 `lovrabet.skill.json`，之后才进入打包上传；`skill push --scope company --dir <dir>` 会先做 SkillHub publish validate，再用 `visibility=NAMESPACE_ONLY` 提交审核，不代表版本已立即生效。frontmatter `name` 固定写稳定 `skillCode`，`displayName` 写中文等人类可读展示名并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应写一句用户可直接发送的推荐触发话术，缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
+`lovrabet skill install/create/validate/list/push` 是 CLI 的 Skill 工作流：install 默认把当前应用 personal/company 业务 Skill 安装到用户级 Agent Skill 目录，并以 `<appCode>--<skillCode>` 隔离应用；只有用户明确要求绑定当前项目时才加 `--project`，链接写入当前工作目录的 `.agents/skills/<skillCode>`，两种安装可以共存；create 只生成本地自包含草稿，validate 检查 `SKILL.md` 与 frontmatter 必要字段，list 查看 SkillHub-backed 云端列表或本地 CLI 管理的 cache/链接，push 默认创建或更新 personal Skill，`push --scope company` 提交公司级 Skill 新版本审核。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 管理，也不能 push 或提审。`skill list --local` 只读本地元数据，不下载、不物化、不清理；默认查看用户级链接，查看当前项目链接时加 `--project`。`skill push` 上传前先检查 `SKILL.md` 和 frontmatter 必要字段，再用本地 skillCode 在当前 App namespace 下精确查询远端 Skill 并把远端 metadata 写回 `lovrabet.skill.json`，之后才进入打包上传；`skill push --scope company --dir <dir>` 会先做 SkillHub publish validate，再用 `visibility=NAMESPACE_ONLY` 提交审核，不代表版本已立即生效。frontmatter `name` 固定写稳定 `skillCode`，`displayName` 写中文等人类可读展示名并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应写一句用户可直接发送的推荐触发话术，缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
 
 personal `skill push --dry-run` 使用 `visibility=PRIVATE` 调用 SkillHub publish validate，提前展示正式发布的 errors 和 warnings；errors 始终阻断，正式 push 遇到 warnings 时会展示并停止。人工复核后，personal 与 company push 都需显式添加 `--confirm-warnings` 才会提交未经改写的同一份包。CLI 不根据 warning 文案分类，也不自动脱敏或改写源 Skill。
 

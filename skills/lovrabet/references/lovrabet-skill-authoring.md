@@ -42,10 +42,12 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 本地已有目录时，直接编辑 `.agents/skills/<skillCode>/SKILL.md` 和必要资源。当前 workspace 没有目标 Skill 时，先安装当前应用可见的业务 Skill：
 
 ```bash
-lovrabet skill install --code <skillCode> --format compress
+lovrabet skill install --project --code <skillCode> --format compress
 lovrabet skill validate --dir .agents/skills/<skillCode> --strict
 lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```
+
+`skill install` 默认安装到用户级 Agent Skill 目录。这里需要直接编辑当前项目中的 Skill，所以显式添加 `--project`，把有效链接写到当前工作目录的 `.agents/skills/<skillCode>`。
 
 如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过 `lovrabet skill push` 保存为个人 Skill。
 

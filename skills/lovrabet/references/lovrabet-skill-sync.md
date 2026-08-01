@@ -49,11 +49,12 @@ lovrabet skill list --scope all
 lovrabet skill list --code sales_playbook
 lovrabet skill list --local
 lovrabet skill list --local --scope all
+lovrabet skill list --local --project
 ```
 
 默认等价于 `--scope all`，查询 SkillHub-backed 云端 personal 和 company 业务 Skill，不安装、不下载内容。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 查询。
 
-`--local` 只读取当前 env、AK、App 下 CLI 管理的本地 cache 与 agent 链接，依赖 `lovrabet.skill.json` 识别元数据；它不请求云端、不下载 package、不物化文件，也不清理旧目录。需要查看本地是否已经安装到机器上时用 `lovrabet skill list --local`，需要看云端是否存在时用不带 `--local` 的 `lovrabet skill list`。
+`--local` 只读取当前 env、AK、App 下 CLI 管理的本地 cache 与用户级链接，依赖 `lovrabet.skill.json` 识别元数据；它不请求云端、不下载 package、不物化文件，也不清理旧目录。查看当前项目链接时使用 `skill list --local --project`。需要查看本地是否已经安装时用 `lovrabet skill list --local`，需要看云端是否存在时用不带 `--local` 的 `lovrabet skill list`。
 
 ## 安装业务 Skill
 
@@ -63,9 +64,10 @@ lovrabet skill install --scope all
 lovrabet skill install --scope personal
 lovrabet skill install --scope company
 lovrabet skill install --code sales_playbook
+lovrabet skill install --project
 ```
 
-默认等价于 `--scope all`，安装当前 App 下当前 AK 可见的 `personal` 和 `company` 业务 Skill，不安装 `builtin`。
+默认等价于 `--scope all`，安装当前 App 下当前 AK 可见的 `personal` 和 `company` 业务 Skill，不安装 `builtin`。有效链接默认写入用户级 Agent Skill 目录；只有用户明确要求绑定当前项目时才添加 `--project`。
 
 安装过程会使用当前环境和 AK 指纹隔离的 CLI 管理缓存：
 
@@ -82,14 +84,20 @@ lovrabet skill install --code sales_playbook
 
 ## 本地链接
 
-有效 Skill 会链接到：
+默认用户级有效 Skill 会链接到：
 
 ```text
 ~/.agents/skills/<appCode>--<skillCode>
 ~/.claude/skills/<appCode>--<skillCode>
 ```
 
-personal 与 company 同名时 personal 优先；只有 company 时链接 company。CLI 只替换或移除指向 `~/.lovrabet` cache 的已管理 symlink，不覆盖或删除普通文件、目录或外部 symlink。
+显式执行 `lovrabet skill install --project` 时，项目级链接不重复携带 appCode：
+
+```text
+<cwd>/.agents/skills/<skillCode>
+```
+
+personal 与 company 同名时 personal 优先；只有 company 时链接 company。用户级与项目级安装可以共存，CLI 只在本次选择的链接目标中替换或移除指向 `~/.lovrabet` cache 且 metadata 归属当前 App/code 的已管理 symlink，不覆盖或删除普通文件、目录、外部 symlink 或其他 App 的链接。显式项目安装清理缓存时，会保留已有用户级链接仍在引用的目录；项目安装也会拒绝覆盖 `lovrabet`、`runtime-observe`、`secret-retriever` 等平台保留 Skill 名称。
 
 ## 推送
 
@@ -115,7 +123,7 @@ lovrabet skill push --scope company --dir .agents/skills/sales-playbook --confir
 
 CLI 的 Skill 能力是目录同步：
 
-- `skill install`：把当前应用下当前 AK 可见的 personal/company Skill 安装到本地 Agent Skill 目录。
+- `skill install`：把当前应用下当前 AK 可见的 personal/company Skill 默认安装到用户级目录；`--project` 才安装到当前项目 `.agents/skills`。
 - `skill create --name <name> --type read|write`：生成本地自包含 Skill 草稿，不上传。
 - `skill validate --dir <dir>`：检查 Skill 必要元数据。
 - `skill list`：查看云端 Skill 列表；`--local` 查看 CLI 管理的本地 cache 和链接。
