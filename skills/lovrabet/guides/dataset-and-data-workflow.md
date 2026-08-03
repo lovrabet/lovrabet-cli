@@ -45,13 +45,28 @@ lovrabet dataset sdk-doc --code <datasetCode>
 6. 拿到 `datasetCode` 后，再进入 `data` 子命令
 
 ```bash
-lovrabet data filter --code <datasetCode> --params '<json>'
+# 第 1 页：过滤、稳定排序和分页都放进一个 --params JSON
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":1,"pageSize":20}'
+
+# 第 2 页：复制上一页参数，只递增 currentPage
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":2,"pageSize":20}'
+
 lovrabet data getOne --code <datasetCode> --params '<json>'
 lovrabet data create --code <datasetCode> --params '<json>'
 lovrabet data batchCreate --code <datasetCode> --params '[{"name":"a"},{"name":"b"}]'
 lovrabet data update --code <datasetCode> --params '<json>'
 lovrabet data delete --code <datasetCode> --params '<json>' --yes
 ```
+
+`data filter` 的 `where`、`select`、`orderBy`、`currentPage`、`pageSize` 都是 `--params` JSON 字段。不要使用 `--where`、`--select`、`--order-by`、`--current-page`、`--page`、`--page-size`；CLI 会拒绝这些误用。翻页时保持筛选条件、返回字段、排序和 `pageSize` 不变，只递增从 1 开始的 `currentPage`。分页查询应使用唯一且稳定的排序字段，避免跨页重复或遗漏。
+
+查询后核对记录和分页元数据：
+
+```bash
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":1,"pageSize":20}' --format compress --jq '.data.result | {tableData, paging}'
+```
+
+必须确认 `paging.currentPage`、`paging.pageSize` 与请求一致，并检查 `tableData` 是否满足 `where`。条件未生效、分页元数据不符或返回形状异常时，本次查询结果不可作为业务结论；先检查 `--params`，必要时执行 `lovrabet data filter --help`。
 
 `data update` 的 `id` 可传单值或数组；批量更新示例：`--params '{"id":[1,2,3],"status":"done"}'`。数组不能为空，一次最多 1000 条。批量数组 id 会在实际请求体和 dry-run 预览中使用逗号字符串兼容运行时解析，用户仍按数组输入。
 
@@ -145,3 +160,11 @@ lovrabet data delete --code <datasetCode> --params '<json>' --yes
 ### app 不明确但直接跑 `data *`
 
 这通常是在跳过应用决议。先退回去做 app + dataset 定位。
+
+### 把过滤或分页字段写成独立 flag
+
+`--where`、`--page-size` 等写法不会表达 `data filter` 请求体。把所有过滤、排序和分页字段放入一个 `--params` JSON；不要删掉错误 flag 后执行空参数查询。
+
+### 返回了明显未过滤的数据
+
+不要把返回内容直接当成“系统里确实存在这些记录”。先核对 `data.result.paging`、抽查 `data.result.tableData` 是否满足 `where`，再修正查询或查看 `lovrabet data filter --help`。

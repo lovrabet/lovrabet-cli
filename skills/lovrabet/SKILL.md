@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.1.19
+version: 2.1.20
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、Artifact、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、service tree、业务服务树、api-doc、dataset、data filter、artifact、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -406,6 +406,14 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | 删除记录 | `lovrabet data delete --code <code> --params '{"id":123}' --yes` |
 | 聚合统计 | `lovrabet data aggregate --code <code> --params '{"aggregate":[{"column": "amount","type":"SUM","alias":"total"}],"groupBy":["status"]}'` |
 
+#### `data filter` 强约束
+
+- `where`、`select`、`orderBy`、`currentPage`、`pageSize` 都是同一个 `--params` JSON 对象里的字段，不是独立 CLI flags。
+- 禁止使用 `--where`、`--select`、`--order-by`、`--current-page`、`--page`、`--page-size`。CLI 会拒绝这些误用；不要删除错误 flag 后以空参数重试。
+- 页码从 1 开始。翻到下一页时，完整复制上一页的 `--params`，保持 `where`、`select`、`orderBy`、`pageSize` 不变，只递增 `currentPage`。
+- 分页查询使用唯一且稳定的排序字段，例如 `"orderBy":[{"id":"asc"}]`，避免跨页重复或遗漏。
+- 每次查询后核对返回的 `data.result.paging.currentPage`、`pageSize`、`totalCount`，并检查 `data.result.tableData` 是否满足 `where`。条件未生效时先修正查询，不能把未过滤结果当作业务事实。
+
 ### Custom SQL 与 Backend Function
 
 | 意图 | 命令 |
@@ -489,11 +497,14 @@ lovrabet dataset list --name "订单"
 # 2. 查看字段结构（确认数据集 code + 字段名）
 lovrabet dataset detail --code <datasetCode>
 
-# 3. 查询数据
-lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"currentPage":1,"pageSize":20}'
+# 3. 查询第 1 页；过滤、稳定排序和分页都在同一个 --params JSON 中
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":1,"pageSize":20}'
 
-# 翻到第 2 页
-lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"currentPage":2,"pageSize":20}'
+# 翻到第 2 页：只把 currentPage 改为 2
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":2,"pageSize":20}'
+
+# 只查看记录和分页元数据；核对 paging 后再得出业务结论
+lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":2,"pageSize":20}' --format compress --jq '.data.result | {tableData, paging}'
 
 # 4. 获取单条
 lovrabet data getOne --code <datasetDataset> --params '{"id":123}'
@@ -576,6 +587,8 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
   "pageSize": 20
 }
 ```
+
+这些字段不能写成独立 CLI flags。翻页时保持 `where`、`select`、`orderBy`、`pageSize` 不变，只递增从 1 开始的 `currentPage`；执行后核对 `data.result.paging` 和 `data.result.tableData`。
 
 ### where 查询语法
 

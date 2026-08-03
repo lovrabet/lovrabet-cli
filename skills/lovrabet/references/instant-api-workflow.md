@@ -56,15 +56,17 @@ Backend Function HOOK 绑定到某个 Dataset 的一个具体 Instant API operat
 
 ### data filter — 条件查询
 
+`where`、`select`、`orderBy`、`currentPage`、`pageSize` 必须放在同一个 `--params` JSON 对象中。它们不是独立 CLI flags；禁止使用 `--where`、`--select`、`--order-by`、`--current-page`、`--page`、`--page-size`。
+
 ```bash
 # 查全部（默认第一页）
-lovrabet data filter --code <code> --params '{"currentPage":1,"pageSize":20}'
+lovrabet data filter --code <code> --params '{"orderBy":[{"id":"asc"}],"currentPage":1,"pageSize":20}'
 
 # 带条件
-lovrabet data filter --code <code> --params '{"where":{"status":{"$eq":"active"}},"currentPage":1,"pageSize":20}'
+lovrabet data filter --code <code> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":1,"pageSize":20}'
 
-# 翻页
-lovrabet data filter --code <code> --params '{"where":{"status":{"$eq":"active"}},"currentPage":2,"pageSize":50}'
+# 翻页：完整复制上一页参数，只递增 currentPage
+lovrabet data filter --code <code> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":2,"pageSize":20}'
 
 # 完整示例：条件 + 分页 + 排序 + 选字段
 lovrabet data filter --code <code> --params '{
@@ -78,15 +80,21 @@ lovrabet data filter --code <code> --params '{
 
 **--params 结构：**
 
-聚合定义使用 `column` 指定聚合列；`field` 仅作为历史兼容别名，新调用不要使用。
-
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `where` | object | 查询条件 |
 | `select` | string[] | 返回字段列表 |
-| `orderBy` | object[] | 排序，如 `[{"id":"desc"}]` |
-| `currentPage` | number | 页码 |
-| `pageSize` | number | 每页条数 |
+| `orderBy` | object[] | 稳定排序，例如按唯一字段 `[{"id":"asc"}]` |
+| `currentPage` | number | 页码，从 1 开始 |
+| `pageSize` | number | 每页条数；翻页时保持不变 |
+
+翻页时必须保持 `where`、`select`、`orderBy`、`pageSize` 不变，只递增 `currentPage`。分页查询优先使用唯一且稳定的排序字段，避免跨页重复或遗漏。查询后可投影记录和分页元数据：
+
+```bash
+lovrabet data filter --code <code> --params '{"where":{"status":{"$eq":"active"}},"orderBy":[{"id":"asc"}],"currentPage":2,"pageSize":20}' --format compress --jq '.data.result | {tableData, paging}'
+```
+
+确认 `paging.currentPage`、`paging.pageSize` 与请求一致，并检查 `tableData` 是否满足 `where`。条件未生效或返回形状异常时，本次结果不可作为业务结论；先修正查询，不要把未过滤内容解释为完整业务事实。
 
 ### data getOne — 单条查询
 
