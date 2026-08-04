@@ -19,7 +19,7 @@ lovrabet skill create --name invoice-review --type write --dry-run
   references/output-contract.md
 ```
 
-生成的草稿带有 `【...】` 占位符。Agent 必须根据业务目标显式传入 `--type read|write`；无法判断是否存在业务副作用时停止并请求澄清。frontmatter `name` 是稳定 `skillCode`，`displayName` 是中文等人类可读展示名，`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 会检查 `SKILL.md` 与 frontmatter 必要字段；缺少顶层 `displayName` 会 warning，但正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
+生成的草稿带有 `【...】` 占位符。Agent 必须根据业务目标显式传入 `--type read|write`；无法判断是否存在业务副作用时停止并请求澄清。frontmatter `name` 是稳定 `skillCode`，`displayName` 根据用户实际展示诉求填写人类可读名称，`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词。CLI 会检查 `SKILL.md` 与 frontmatter 必要字段；缺少顶层 `displayName` 会 warning，但正文、章节、references、占位符和输出协议不参与 CLI validate 或 push 阻断。
 
 ## 必要元数据检查
 

@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.1.20
+version: 2.1.21
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、Artifact、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、service tree、业务服务树、api-doc、dataset、data filter、artifact、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -316,7 +316,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **artifact** | `detail` | 查看 Artifact 源码和元数据 | read | AK |
 | **artifact** | `create` | 从本地 React 模块文件创建 Artifact | write | AK |
 | **artifact** | `update` | 更新 Artifact，先执行 `artifact detail` | write | AK |
-| **file** | `upload` | 上传本地文件到当前运行态应用 | write | AK |
+| **file** | `upload` | 上传本地文件到当前运行态应用 | read | AK |
 | **file** | `query-url` | 查询已上传文件的访问 URL，默认短效，可显式 3 年长期 | read | AK |
 | **ocr** | `recognize` | 对 URL 或本地文件执行 OCR 识别 | write | AK |
 | **kb** | `list` | 查看 personal 知识库条目 | read | AK |
@@ -560,7 +560,9 @@ lovrabet artifact create --file ./orders-artifact.tsx --name "Orders" --dry-run
 
 Agent 执行 Skill 需要 app-config value 时，也调用 `lovrabet app-config get <key>` 获取，并只在当前任务内消费。不要为读取配置创建或复用 Backend Function，也不要把 value 再放入其他 CLI 的命令参数。除非用户明确要求查看具体值，最终答复默认只说明读取和使用结果，不重复展示 value。
 
-`lovrabet skill install/create/validate/list/push` 是 CLI 的 Skill 工作流：install 默认把当前应用 personal/company 业务 Skill 安装到用户级 Agent Skill 目录，并以 `<appCode>--<skillCode>` 隔离应用；只有用户明确要求绑定当前项目时才加 `--project`，链接写入当前工作目录的 `.agents/skills/<skillCode>`，两种安装可以共存；create 只生成本地自包含草稿，validate 检查 `SKILL.md` 与 frontmatter 必要字段，list 查看 SkillHub-backed 云端列表或本地 CLI 管理的 cache/链接，push 默认创建或更新 personal Skill，`push --scope company` 提交公司级 Skill 新版本审核。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 管理，也不能 push 或提审。`skill list --local` 只读本地元数据，不下载、不物化、不清理；默认查看用户级链接，查看当前项目链接时加 `--project`。`skill push` 上传前先检查 `SKILL.md` 和 frontmatter 必要字段，再用本地 skillCode 在当前 App namespace 下精确查询远端 Skill 并把远端 metadata 写回 `lovrabet.skill.json`，之后才进入打包上传；`skill push --scope company --dir <dir>` 会先做 SkillHub publish validate，再用 `visibility=NAMESPACE_ONLY` 提交审核，不代表版本已立即生效。frontmatter `name` 固定写稳定 `skillCode`，`displayName` 写中文等人类可读展示名并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应写一句用户可直接发送的推荐触发话术，缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
+`lovrabet skill install/create/validate/list/push` 是 CLI 的 Skill 工作流：install 默认把当前应用 personal/company 业务 Skill 安装到用户级 Agent Skill 目录，并以 `<appCode>--<skillCode>` 隔离应用；只有用户明确要求绑定当前项目时才加 `--project`，链接写入当前工作目录的 `.agents/skills/<skillCode>`，两种安装可以共存；create 只生成本地自包含草稿，validate 检查 `SKILL.md` 与 frontmatter 必要字段，list 查看 SkillHub-backed 云端列表或本地 CLI 管理的 cache/链接，push 默认创建或更新 personal Skill，`push --scope company` 提交公司级 Skill 新版本审核。Builtin Skill 由 sandbox 镜像内置提供，不通过远端 `skill list` 管理，也不能 push 或提审。`skill list --local` 只读本地元数据，不下载、不物化、不清理；默认查看用户级链接，查看当前项目链接时加 `--project`。`skill push` 上传前先检查 `SKILL.md` 和 frontmatter 必要字段，再用本地 skillCode 在当前 App namespace 下精确查询远端 Skill 并把远端 metadata 写回 `lovrabet.skill.json`，之后才进入打包上传；`skill push --scope company --dir <dir>` 会先做 SkillHub publish validate，再用 `visibility=NAMESPACE_ONLY` 提交审核，不代表版本已立即生效。frontmatter `name` 固定写稳定 `skillCode`，`displayName` 根据用户实际展示诉求填写人类可读名称并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应写一句用户可直接发送的推荐触发话术，缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `displayName` 与 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
+
+用户明确要求配置业务 Skill 的 YAML frontmatter 时，按 [Skill 创建、更新与发布工作流](references/lovrabet-skill-authoring.md) 最小编辑目标 `SKILL.md`：只改用户指定字段，保持稳定 `name`，`metadata.type` 仅使用 `read | write`，不创建或开启 `metadata.internal`，并保留语义不明确的未知字段。修改后先 validate；push scope 必须来自用户明确要求，不得仅根据已安装 Skill 的现有 scope 推断 company 更新授权。company 新版本审核通过前不得声称已经生效。
 
 personal `skill push --dry-run` 使用 `visibility=PRIVATE` 调用 SkillHub publish validate，提前展示正式发布的 errors 和 warnings；errors 始终阻断，正式 push 遇到 warnings 时会展示并停止。人工复核后，personal 与 company push 都需显式添加 `--confirm-warnings` 才会提交未经改写的同一份包。CLI 不根据 warning 文案分类，也不自动脱敏或改写源 Skill。
 
@@ -673,8 +675,8 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 
 | 等级 | 命令 | 保护 |
 |------|------|------|
-| read | api-doc list/detail, dataset list/detail/sdk-doc, data filter/getOne/aggregate, sql detail/exec, bff detail/exec, app-config get, personal-bff list/detail, artifact list/detail, file query-url, kb list/detail/search, schedule validate/list/detail, service validate/list/detail, skill validate/list, app list, config list/get, logs | 无 |
-| write | data create, data batchCreate, data update, personal-bff create/update, artifact create/update, file upload, ocr recognize, kb create/update, service import/export/remove, skill install/create/push, workspace init/use, app init/use/import, config set/delete | 支持 dry-run 的命令先预览；文件/OCR dry-run 只展示当前服务端调用链路，不上传、不识别 |
+| read | api-doc list/detail, dataset list/detail/sdk-doc, data filter/getOne/aggregate, sql detail/exec, bff detail/exec, app-config get, personal-bff list/detail, artifact list/detail, file upload/query-url, kb list/detail/search, schedule validate/list/detail, service validate/list/detail, skill validate/list, app list, config list/get, logs | 无 |
+| write | data create, data batchCreate, data update, personal-bff create/update, artifact create/update, ocr recognize, kb create/update, service import/export/remove, skill install/create/push, workspace init/use, app init/use/import, config set/delete | 支持 dry-run 的命令先预览；OCR dry-run 只展示当前服务端调用链路，不上传、不识别 |
 | high-risk-write | data delete, personal-bff exec, schedule create/run/delete | 需 `--yes` 或交互确认 |
 
 ## 详细参考

@@ -10,7 +10,7 @@
 - `SKILL.md` 必须位于 Skill 目录根部。
 - `lovrabet.skill.json` 必须位于 Skill 目录根部。
 - 需要较长规则、schema、示例或脚本时，放入 `references/`、`scripts/` 或 `assets/`，并在 `SKILL.md` 中说明读取时机。
-- `SKILL.md` frontmatter 中 `name` 固定写稳定 `skillCode`，不要写中文；中文或业务展示名写顶层 `displayName`，即使展示名暂时等于 `skillCode` 也应显式保留。
+- `SKILL.md` frontmatter 中 `name` 固定写稳定 `skillCode`，不要写展示文案；面向用户的业务展示名写顶层 `displayName`，即使展示名暂时等于 `skillCode` 也应显式保留。
 - 顶层 `example` 是一条用户可以直接发送、用于触发该 Skill 的推荐话术，例如 `example: 上传这份产品资料`。
 - `example` 可选；缺失、空白或不是单个标量时，`lovrabet skill validate` 会给出 warning，但不阻断 push。
 - 不要把正文说明、内部 CLI 命令、执行步骤或多个示例写入 `example`，也不要自动生成该字段。
@@ -50,6 +50,23 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 `skill install` 默认安装到用户级 Agent Skill 目录。这里需要直接编辑当前项目中的 Skill，所以显式添加 `--project`，把有效链接写到当前工作目录的 `.agents/skills/<skillCode>`。
 
 如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过 `lovrabet skill push` 保存为个人 Skill。
+
+### 配置 YAML frontmatter
+
+当用户要求修改展示名、推荐话术、读写类型或其他明确字段时，直接编辑目标 `SKILL.md` 顶部的 YAML frontmatter：
+
+- 只修改用户明确指定的字段，保留其他字段和 Markdown 正文。
+- `name` 是稳定 `skillCode`，普通配置任务不得修改。
+- `displayName` 根据用户实际展示诉求填写人类可读名称。
+- `example` 写一句用户可直接发送的最简触发话术。
+- `metadata.type` 只能是 `read` 或 `write`。
+- 不创建或开启 `metadata.internal`；未知字段默认保留，语义不明确时不修改。
+
+修改后执行 `lovrabet skill validate --dir <dir> --strict`。只有用户明确要求更新 company 源并提交审核时，才按既有流程先 dry-run，再执行 `push --scope company`；否则遵循上文规则创建或更新 personal 副本。company 新版本审核通过前不得声称已生效。
+
+推荐用户话术：
+
+> 请把企业 Skill `<skillCode>` 的 YAML frontmatter 中 `displayName` 改为「<展示名>」，保持 `name` 不变；校验通过后提交企业版新版本审核。
 
 ## 发布扫描告警
 

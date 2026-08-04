@@ -2,11 +2,13 @@
 
 `file` 命令用于上传本地文件，并为已上传文件查询访问 URL。适用场景包括上传发票、证照、合同、图片、PDF、业务附件，或为后续 OCR、BFF、人工核对提供文件访问地址。默认查询短效 URL；只有富文本、Markdown、HTML、邮件正文或三方系统只接受 URL 且需要长期展示时，才显式查询 3 年长期 URL。
 
+`file upload` 的风险等级为 `read`：上传只生成尚未绑定业务记录的 `filePath`，不创建、更新或删除业务数据。它仍会把本地文件发送到远端并创建文件对象，必须使用明确的目标应用和具备权限的身份。
+
 ## 命令概览
 
 | 目标 | 命令 | 风险 |
 |------|------|------|
-| 上传本地文件 | `lovrabet file upload --file <local-path>` | write |
+| 上传本地文件 | `lovrabet file upload --file <local-path>` | read |
 | 查询临时预览 URL | `lovrabet file query-url --filepath <filePath>` | read |
 | 查询临时下载 URL | `lovrabet file query-url --filepath <filePath> --download` | read |
 | 查询 3 年长期嵌入 URL | `lovrabet file query-url --filepath <filePath> --long-term` | read |
@@ -53,6 +55,7 @@ lovrabet file query-url --filepath <filePath> --long-term --format compress
 |------|------|
 | 本地文件不存在 | 检查 `--file` 路径，使用真实本地文件 |
 | 文件超过 50 MB | 拆分或压缩文件；当前运行态上传接口上限为 50 MB |
+| 服务端返回“权限不足” | 先用 `--dry-run` 核对目标 `appCode`；确认无误后，由目标应用管理员为当前用户角色配置 `/client/uploadFile` API 权限 |
 | `filePath is required` | 先执行 `file upload`，从返回中取 `filePath` |
 | URL 过期或不可访问 | 重新执行 `file query-url` 获取新的临时 URL |
 | 需要下载而不是预览 | 在 `file query-url` 上追加 `--download` |
