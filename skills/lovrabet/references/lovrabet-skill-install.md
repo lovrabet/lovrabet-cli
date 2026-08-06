@@ -20,7 +20,7 @@ lovrabet skill install --project
 - personal 与 company 出现同一 `skillCode` 时，personal 版本生效。
 - `--scope personal` 只安装个人业务 Skill；`--scope company` 只安装公司业务 Skill。
 - `--code` 只安装指定业务 Skill，并清理该 code 对应的失效链接或 cache。
-- 安装产物面向 Agent 消费，不建议直接编辑；新建或修改业务 Skill 时使用 `lovrabet skill create` / `lovrabet skill validate` / `lovrabet skill push`。
+- 安装产物面向 Agent 消费，不建议直接编辑；新建或修改业务 Skill 时使用 `lovrabet skill create` / `lovrabet skill validate` / `lovrabet skill push --diagram-file <mermaid-file>`。
 - 下载缓存仍保存在 `~/.lovrabet/cache/<env>/<ak_fingerprint>/skills/<appCode>/...`，不会复制到项目目录。
 
 ## CLI Built-in Skill

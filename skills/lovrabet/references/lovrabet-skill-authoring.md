@@ -30,7 +30,7 @@
 ```bash
 lovrabet skill create --name "<skillCode>" --type read --target .agents/skills
 lovrabet skill validate --dir .agents/skills/<skillCode> --strict
-lovrabet skill push --dir .agents/skills/<skillCode> --format compress
+lovrabet skill push --dir .agents/skills/<skillCode> --diagram-file ./<skillCode>.mmd --format compress
 ```
 
 业务 Skill 模板类型仅支持 `read | write`。Agent 必须根据业务目标显式传入 `--type`；无法判断是否存在业务副作用时，停止并请求澄清。仅查询、汇总或核对且不改变业务状态时选择 `read`；涉及创建、更新、删除、状态流转、发送、发布或上传等业务副作用时选择 `write`，并在 Skill 契约中定义预览、用户确认、正式执行、读回核对和失败恢复。
@@ -44,12 +44,12 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 ```bash
 lovrabet skill install --project --code <skillCode> --format compress
 lovrabet skill validate --dir .agents/skills/<skillCode> --strict
-lovrabet skill push --dir .agents/skills/<skillCode> --format compress
+lovrabet skill push --dir .agents/skills/<skillCode> --diagram-file ./<skillCode>.mmd --format compress
 ```
 
 `skill install` 默认安装到用户级 Agent Skill 目录。这里需要直接编辑当前项目中的 Skill，所以显式添加 `--project`，把有效链接写到当前工作目录的 `.agents/skills/<skillCode>`。
 
-如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过 `lovrabet skill push` 保存为个人 Skill。
+如果安装得到的是 company Skill，默认不要覆盖 company 源；新建或更新 personal 副本，通过带 `--diagram-file` 的 `lovrabet skill push` 保存为个人 Skill。
 
 ### 配置 YAML frontmatter
 
@@ -62,11 +62,28 @@ lovrabet skill push --dir .agents/skills/<skillCode> --format compress
 - `metadata.type` 只能是 `read` 或 `write`。
 - 不创建或开启 `metadata.internal`；未知字段默认保留，语义不明确时不修改。
 
-修改后执行 `lovrabet skill validate --dir <dir> --strict`。只有用户明确要求更新 company 源并提交审核时，才按既有流程先 dry-run，再执行 `push --scope company`；否则遵循上文规则创建或更新 personal 副本。company 新版本审核通过前不得声称已生效。
+修改后执行 `lovrabet skill validate --dir <dir> --strict`。只有用户明确要求更新 company 源并提交审核时，才按既有流程先 dry-run，再执行带 `--diagram-file` 的 `push --scope company`；否则遵循上文规则创建或更新 personal 副本。company 新版本审核通过前不得声称已生效。
 
 推荐用户话术：
 
 > 请把企业 Skill `<skillCode>` 的 YAML frontmatter 中 `displayName` 改为「<展示名>」，保持 `name` 不变；校验通过后提交企业版新版本审核。
+
+## 生成作用流程图
+
+每次创建 Skill 或修改源码并准备发布新版本时，Agent 必须在 push 前读取本次上传的 `SKILL.md` 及其明确引用的必要文件，直接编写一张 Mermaid flowchart。不要要求用户提供流程图。流程图是该 SkillVersion 的作用说明，不是实际执行记录。
+
+图中应覆盖：
+
+- 触发条件和主要输入。
+- 关键执行步骤，以及影响结果的重要条件分支。
+- 权限不足、契约缺失、校验失败或结果不确定时的停止、澄清或安全降级。
+- 最终输出或业务副作用；写入类 Skill 还要体现确认与读回核对。
+
+只写文档能够支持的步骤，标签保持简短，不逐段复述正文，也不编造能力。源码不足以形成可信流程图时，先完善 Skill 契约或向用户澄清，再发布；不得提交空图或占位图。
+
+建议从 `flowchart TD` 开始，使用清晰的节点、边和条件标签表达作用流程。提交的文件必须是语法正确的 Mermaid；先让 dry-run 通过，再使用同一份文件正式发布。
+
+将原始 Mermaid 保存为 `.mmd` 文本并通过 `--diagram-file` 传给 dry-run 和正式 push；两次必须使用同一份 Skill 源码和 Mermaid。也可以用 `--diagram-file -` 从标准输入读取。任一部分失败时修正后整体重试，不改成分步发布。
 
 ## 发布扫描告警
 
@@ -85,11 +102,11 @@ CLI 不自动创建脱敏包，也不自动改写源 Skill。
 
 ```bash
 lovrabet skill validate --dir .agents/skills/<skillCode> --strict
-lovrabet skill push --scope company --dir .agents/skills/<skillCode> --dry-run
-lovrabet skill push --scope company --dir .agents/skills/<skillCode> --confirm-warnings --format compress
+lovrabet skill push --scope company --dir .agents/skills/<skillCode> --diagram-file ./<skillCode>.mmd --dry-run
+lovrabet skill push --scope company --dir .agents/skills/<skillCode> --diagram-file ./<skillCode>.mmd --confirm-warnings --format compress
 ```
 
-`push --scope company` 使用 SkillHub `NAMESPACE_ONLY` 可见性提交审核。命令成功只表示新版本已提交 review；审核通过前不要声称该版本已对所有成员生效。需要本机 Agent 使用生效版本时，审核后再执行 `lovrabet skill install --code <skillCode>`。
+`push --scope company` 使用 SkillHub `NAMESPACE_ONLY` 可见性把 Skill 包与 Mermaid 一起提交审核。命令成功只表示带图的新版本已提交 review；审核通过前不要声称该版本已对所有成员生效。需要本机 Agent 使用生效版本时，审核后再执行 `lovrabet skill install --code <skillCode>`。
 
 ## 内容要求
 

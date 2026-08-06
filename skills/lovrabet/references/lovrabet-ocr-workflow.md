@@ -6,10 +6,12 @@
 
 | 目标 | 命令 | 风险 |
 |------|------|------|
-| 识别远程 URL | `lovrabet ocr recognize --scene <scene> --image-url <url>` | write |
-| 识别本地文件 | `lovrabet ocr recognize --scene <scene> --image-file <local-path>` | write |
+| 识别远程 URL | `lovrabet ocr recognize --scene <scene> --image-url <url>` | read |
+| 识别本地文件 | `lovrabet ocr recognize --scene <scene> --image-file <local-path>` | read |
 
 需要机器可读输出时统一加 `--format compress`；需要截取字段时再叠加 `--jq`。
+
+OCR 识别不创建、更新或删除业务数据，因此 `ocr recognize` 的风险等级为 `read`。服务端仍可能记录审计、调用第三方服务并产生积分消耗；这些服务运行副作用不改变 CLI 风险分类。需要把识别结果写入数据集时，后续 `data create` 或 `data update` 仍按 write 规则执行。
 
 `ocr recognize` 支持 dry-run 预览。正式识别前先用 `--dry-run` 确认目标应用、输入方式和服务端调用链路；dry-run 不上传文件、不调用 OCR。
 

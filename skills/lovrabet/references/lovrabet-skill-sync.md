@@ -102,22 +102,34 @@ personal 与 company 同名时 personal 优先；只有 company 时链接 compan
 ## 推送
 
 ```bash
-lovrabet skill push --dir ~/.lovrabet/cache/production/<ak_fingerprint>/skills/app-1/personal/sales_playbook
-lovrabet skill push --dir ./app-1--sales_playbook
+lovrabet skill push --dir ~/.lovrabet/cache/production/<ak_fingerprint>/skills/app-1/personal/sales_playbook --diagram-file ./sales-playbook.mmd
+lovrabet skill push --dir ./app-1--sales_playbook --diagram-file ./sales-playbook.mmd
 ```
 
 `push` 读取目录下的 `SKILL.md`。frontmatter `name` 继续用于推导稳定 `skillCode`；顶层 `displayName` 会作为远端展示名提交到 SkillHub。没有 `displayName` 时，CLI 才回退使用 `lovrabet.skill.json` 中的名称。没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
 
-`push` 默认创建或更新 personal Skill。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
+`push` 默认创建或更新 personal Skill。发布新 SkillVersion 时 `--diagram-file` 必填；文件内容是 Agent 根据本次 Skill 源码直接编写、且语法正确的原始 Mermaid flowchart，也可传 `--diagram-file -` 从标准输入读取。CLI 不把流程图加入 Skill 包、本地元数据或安装目录，而是与 Skill 包在同一个发布请求中提交。SkillHub 必须明确确认图已校验、已绑定；缺少回执的旧服务会被视为不支持联合发布。流程图缺失、Mermaid 语法错误或服务端拒绝时，整个 push 失败，不先发布无图版本。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
 
 ## 公司级发布
 
 ```bash
-lovrabet skill push --scope company --dir .agents/skills/sales-playbook --dry-run
-lovrabet skill push --scope company --dir .agents/skills/sales-playbook --confirm-warnings
+lovrabet skill push --scope company --dir .agents/skills/sales-playbook --diagram-file ./sales-playbook.mmd --dry-run
+lovrabet skill push --scope company --dir .agents/skills/sales-playbook --diagram-file ./sales-playbook.mmd --confirm-warnings
 ```
 
-`push --scope company` 读取本地 Skill 目录并向 SkillHub 提交公司级新版本审核。`--dry-run` 只调用 SkillHub publish validate，不创建版本或审核任务；正式提交使用 `visibility=NAMESPACE_ONLY`，成功后版本进入审核，不代表已经成为 effective Skill。审核通过并需要本机 Agent 使用时，再运行 `lovrabet skill install` 安装已生效版本。Skill 子命令包含 `install`、`create`、`validate`、`list`、`push`。
+`push --scope company` 读取本地 Skill 目录与流程图并向 SkillHub 提交公司级新版本审核。`--dry-run` 会同时校验 Skill 包和 Mermaid，不创建版本或审核任务；正式提交使用 `visibility=NAMESPACE_ONLY`，两者必须一起成功，成功后版本进入审核，不代表已经成为 effective Skill。审核通过并需要本机 Agent 使用时，再运行 `lovrabet skill install` 安装已生效版本。
+
+## 精确版本流程图维护
+
+正常创建或更新源码版本时始终使用带 `--diagram-file` 的 `skill push`。只有为历史版本补图或修正已发布版本的图时，才使用独立命令：
+
+```bash
+lovrabet skill diagram-show --skill-code <skillCode> --version <version> --scope personal|company --format compress
+lovrabet skill diagram-validate --skill-code <skillCode> --version <version> --scope personal|company --source-fingerprint <sha256> --expected-diagram-revision <revision> --diagram-file <mermaid-file> --format compress
+lovrabet skill diagram-push --skill-code <skillCode> --version <version> --scope personal|company --source-fingerprint <sha256> --expected-diagram-revision <revision> --diagram-file <mermaid-file> --format compress
+```
+
+每次独立维护都先运行 `diagram-show`，只复制该次输出中的服务端 canonical `sourceFingerprint` 和 `expectedDiagramRevision`，不要自行计算 fingerprint、猜 revision 或复用旧读结果。已有图时 `expectedDiagramRevision` 等于当前 `diagramRevision`；`found=false` 表示该精确版本当前无图，但响应仍必须带该版本的 `sourceFingerprint`，并给出 `diagramRevision=null`、`expectedDiagramRevision=0` 供首次写入。若响应缺少 fingerprint，CLI 会按服务能力不完整失败，不能把它解释为无图。先 validate，再用完全相同的目标、fingerprint、revision 和 Mermaid 执行 push。revision 或 source fingerprint 冲突时重新读取并核对，不使用强制覆盖；认证、权限、网络或服务端错误同样不能解释为无图。
 
 ## 与 RuntimeAgent 原生 Skill 工具的关系
 
@@ -127,7 +139,8 @@ CLI 的 Skill 能力是目录同步：
 - `skill create --name <name> --type read|write`：生成本地自包含 Skill 草稿，不上传。
 - `skill validate --dir <dir>`：检查 Skill 必要元数据。
 - `skill list`：查看云端 Skill 列表；`--local` 查看 CLI 管理的本地 cache 和链接。
-- `skill push --dir <dir>`：检查必要上传信息后读取本地目录并创建或更新 personal Skill。
-- `skill push --scope company --dir <dir>`：检查本地目录并提交 company Skill 新版本审核。
+- `skill push --dir <dir> --diagram-file <mermaid-file>`：检查必要上传信息和流程图后创建或更新 personal SkillVersion。
+- `skill push --scope company --dir <dir> --diagram-file <mermaid-file>`：检查本地目录和流程图后提交 company Skill 新版本审核。
+- `skill diagram-validate/diagram-push/diagram-show`：维护一个精确历史 SkillVersion 的流程图，不替代正常联合发布。
 
 RuntimeAgent 原生的 `skill_load`、`skill_update` 等工具是 Agent 服务内部的资源读写能力，不是 `lovrabet` CLI 命令。写命令步骤时不要把这些原生工具当作 CLI 子命令，也不要要求 coworker 直接调用它们。

@@ -82,7 +82,7 @@ lovrabet app-config get example_api_key --format compress
 
 ## personal BFF 工作流
 
-personal BFF 是当前用户在当前应用下维护的个人脚本，适合给 Artifact 做轻量数据编排，或先验证一个临时业务接口的返回形状。
+personal BFF 是当前用户在当前应用下维护的个人脚本，适合做轻量数据编排，或先验证一个临时业务接口的返回形状。
 
 标准顺序：
 
@@ -90,7 +90,7 @@ personal BFF 是当前用户在当前应用下维护的个人脚本，适合给 
 2. `lovrabet personal-bff detail --id <id>` 查看现有脚本后再更新
 3. 从本地脚本文件 `create` 或 `update`
 4. `lovrabet personal-bff exec --id <id> --params '<json>' --yes --format compress` 确认返回形状
-5. 再把结果形状用于 Artifact 源码或交付说明
+5. 再把结果形状用于下游调用或交付说明
 
 ```bash
 lovrabet personal-bff create --name loadOrders --file ./load-orders.js --dry-run
