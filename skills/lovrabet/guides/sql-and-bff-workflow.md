@@ -89,15 +89,15 @@ personal BFF 是当前用户在当前应用下维护的个人脚本，适合做�
 1. `lovrabet personal-bff list` 查当前用户已有脚本
 2. `lovrabet personal-bff detail --id <id>` 查看现有脚本后再更新
 3. 从本地脚本文件 `create` 或 `update`
-4. `lovrabet personal-bff exec --id <id> --params '<json>' --yes --format compress` 确认返回形状
+4. `lovrabet personal-bff exec --id <id> --params '<json>' --format compress` 确认返回形状
 5. 再把结果形状用于下游调用或交付说明
 
 ```bash
 lovrabet personal-bff create --name loadOrders --file ./load-orders.js --dry-run
-lovrabet personal-bff exec --id <id> --params '{"status":"active"}' --yes --format compress
+lovrabet personal-bff exec --id <id> --params '{"status":"active"}' --format compress
 ```
 
-`personal-bff exec` 是 `high-risk-write`，因为脚本行为可能有副作用；非交互场景必须带 `--yes`。
+执行前确认目标脚本 ID、输入参数和已知副作用；执行后核对返回字段、空态和错误形状。
 
 ## 复杂业务写入与频率保护
 

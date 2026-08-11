@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.1.22
+version: 2.1.23
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -57,14 +57,14 @@ npm install -g @lovrabet/lovrabet-cli
 
 ## 本地配置原则
 
-- Lovrabet 运行态 CLI **不要求先创建项目或执行 `app init`**。Agent 常规上手路径是 `auth login --non-interactive` 提示用户取 AK → 用户提供 AccessKey → `auth login --access-key <ACCESS_KEY>` → `app list` → `dataset/data/sql/bff`。
+- Lovrabet 运行态 CLI **不要求预先创建项目或初始化工作目录配置**。Agent 常规上手路径是 `auth login --non-interactive` 提示用户取 AK → 用户提供 AccessKey → `auth login --access-key <ACCESS_KEY>` → `app list` → `dataset/data/sql/bff`。
 - `.lovrabet.json` 只是可选的本地用户意图配置，不代表平台项目，也不保存平台应用目录。
 - **不要**在用户未要求时主动修改本地配置或加 `--global`；优先用显式 `--app` / `--appcode` 满足本次操作。
-- **`workspace init` / `workspace use`**：仅当用户明确要求给当前工作目录绑定默认应用时使用。它只写当前目录 `.lovrabet.json`，支持 `--app`、`--appcode` 或二者组合，不写 AccessKey。详见 [工作目录配置](references/lovrabet-workspace.md)。
+- **`workspace init`**：仅当用户明确要求给尚未绑定应用的当前工作目录建立默认应用上下文时使用；已有绑定时停止并改用 `workspace use`。
+- **`workspace use`**：仅当用户明确要求修改当前工作目录已有的应用绑定时使用；尚未绑定时停止并先用 `workspace init`。两者只写当前目录 `.lovrabet.json`，`--app` 与 `--appcode` 必须二选一，不写 AccessKey。详见 [工作目录配置](references/lovrabet-workspace.md)。
 - **`config set` / `config delete`**：属于高级本地配置维护命令。无本地配置文件且未传 `--global` 时，CLI 会拒绝执行，避免静默污染全局配置。
 - **`app list`**：默认走**远端优先 + 本地缓存**，且只展示已发布、可被 AI 运行态访问的应用；`--local` 只读缓存；`--no-cache` 强制打线上并刷新缓存；排查未发布应用时才用 `--include-unpublished`。
 - **`app pull`**：只刷新本地 app cache，**不**把远端应用列表写入 `.lovrabet.json`；它是手动刷新命令，平时优先使用 `app list`
-- **`app init` / `app use`**：作为兼容入口保留，并会提示改用 `workspace init/use`；运行态应用发现使用 `app list`，刷新缓存使用 `app pull`。详见 [应用管理](references/lovrabet-app.md)。
 
 ## Agent 禁止行为
 
@@ -269,8 +269,6 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **auth** | `info` | 查询当前 AK 对应的登录用户信息 | read | AK |
 | **app** | `list` | 列出当前 AK 可运行态访问应用（默认仅已发布，远端优先，带缓存） | read | AK |
 | **app** | `pull` | 刷新本地 app cache | write | AK |
-| **app** | `init` | 兼容入口：请改用 `workspace init` | write | 本地 |
-| **app** | `use` | 兼容入口：请改用 `workspace use` | write | 本地 |
 | **workspace** | `init` | 初始化当前工作目录的默认应用上下文 | write | 本地 |
 | **workspace** | `use` | 设置当前工作目录的默认应用上下文 | write | 本地 |
 | **config** | `list` | 查看完整配置 | read | 本地 |
@@ -283,16 +281,16 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **service** | `remove` | 从本地 registry 移除 Service Tree manifest | write | 本地 |
 | **service** | `list` | 列出本地已导入业务服务树 | read | 本地 |
 | **service** | `detail` | 查看本地业务服务树详情 | read | 本地 |
-| **skill** | `install` | 安装当前应用业务 Skill 到用户级 Agent Skill 目录，可显式安装到当前项目 | write | AK |
-| **skill** | `create` | 本地生成自包含运行态 Skill 草稿 | write | 本地 |
+| **skill** | `install` | 安装当前应用业务 Skill 到用户级 Agent Skill 目录，可显式安装到当前项目 | read | AK |
+| **skill** | `create` | 本地生成自包含运行态 Skill 草稿 | read | 本地 |
 | **skill** | `validate` | 检查本地 Skill 必要元数据 | read | 本地 |
 | **skill** | `list` | 查看云端或本地 CLI 管理的运行态 Skill 列表 | read | AK |
 | **skill** | `push` | 携带 Mermaid 作用流程图创建/更新 personal Skill；`--scope company` 提交公司级审核 | write | AK |
 | **skill** | `diagram-validate` | 校验精确 SkillVersion 的流程图修正 | read | AK |
 | **skill** | `diagram-push` | 补充或修正精确 SkillVersion 的流程图 | write | AK |
 | **skill** | `diagram-show` | 查看精确 SkillVersion 的当前流程图 | read | AK |
-| **cli-skill** | `install` | 安装或刷新 CLI Built-in Skill | write | 本地 |
-| **update** | `run` | 从 npm 更新 CLI 并刷新 CLI Built-in Skill | write | 本地 |
+| **cli-skill** | `install` | 安装或刷新 CLI Built-in Skill | read | 本地 |
+| **update** | `run` | 从 npm 更新 CLI 并刷新 CLI Built-in Skill | read | 本地 |
 | **api-doc** | `list` | 查看可用运行态 API 文档索引 | read | 本地镜像 |
 | **api-doc** | `detail` | 查看指定 API 文档详情 | read | 本地镜像 |
 | **dataset** | `list` | 列出数据集（含字段列表） | read | AK |
@@ -314,7 +312,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **personal-bff** | `detail` | 查看 personal BFF 详情 | read | AK |
 | **personal-bff** | `create` | 从本地脚本文件创建 personal BFF | write | AK |
 | **personal-bff** | `update` | 更新 personal BFF 元信息或脚本 | write | AK |
-| **personal-bff** | `exec` | 执行 personal BFF，非交互需 `--yes` | high-risk-write | AK |
+| **personal-bff** | `exec` | 按已知 ID 执行 personal BFF | write | AK |
 | **file** | `upload` | 上传本地文件到当前运行态应用 | read | AK |
 | **file** | `query-url` | 查询已上传文件的访问 URL，默认短效，可显式 3 年长期 | read | AK |
 | **ocr** | `recognize` | 对 URL 或本地文件执行 OCR 识别 | read | AK |
@@ -330,7 +328,6 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **schedule** | `run` | 立即触发一次 Task（需确认） | high-risk-write | AK |
 | **schedule** | `delete` | 删除计划并停止未来触发（需确认） | high-risk-write | AK |
 | **logs** | `show` | 查看命令执行历史 | read | 本地 |
-| **logs** | `clear` | 清除命令历史 | read | 本地 |
 
 ## 意图 → 命令索引
 
@@ -368,9 +365,8 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | 强制刷新线上应用列表 | `lovrabet app list --no-cache` |
 | 排查未发布应用是否可见 | `lovrabet app list --include-unpublished` |
 | 手动刷新应用缓存 | `lovrabet app pull` |
-| 初始化当前工作目录应用 | `lovrabet workspace init --appcode <appcode> [--env daily]` |
-| 设置当前工作目录默认应用 | `lovrabet workspace use --app <name> [--env daily]` |
-| 用名称和 appcode 直接写入别名 | `lovrabet workspace use --app <name> --appcode <appcode> [--env daily]` |
+| 尚未绑定时初始化当前工作目录应用 | `lovrabet workspace init --appcode <appcode> [--env daily]` |
+| 已有绑定时修改当前工作目录默认应用 | `lovrabet workspace use --app <name> [--env daily]` |
 | 更新 CLI 到 npm latest | `lovrabet update --latest` |
 | 更新 CLI 到 npm beta | `lovrabet update --beta` |
 | 更新 CLI 到指定版本 | `lovrabet update --version <version>` |
@@ -425,7 +421,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | Agent 使用 app-config value | Agent 调用 `lovrabet app-config get <key>` 获取并在当前任务中消费 |
 | 查看 personal BFF | `lovrabet personal-bff detail --id <id>` |
 | 创建 personal BFF | `lovrabet personal-bff create --name loadOrders --file ./load-orders.js --dry-run` |
-| 执行 personal BFF | `lovrabet personal-bff exec --id <id> --params '{"key":"value"}' --yes` |
+| 执行 personal BFF | `lovrabet personal-bff exec --id <id> --params '{"key":"value"}'` |
 
 ### personal BFF 与知识库
 
@@ -473,7 +469,6 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | 意图 | 命令 |
 |------|------|
 | 查看日志 | `lovrabet logs` |
-| 清除日志 | `lovrabet logs clear` |
 
 ## 统一的 --params 设计
 
@@ -595,6 +590,8 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 
 `--params` JSON 直接作为 `aggregate` 请求体透传，字段与 SDK `AggregateParams` 对齐。聚合定义使用 `column` 指定聚合列；`field` 仅作为历史兼容别名，新调用不要使用。
 
+`aggregate` 仅支持单个 `DB_TABLE` 数据集；`METADATA` 数据集不支持 `aggregate` 或 Custom SQL。JOIN、跨表统计、数据库特有函数或 `aggregate` 无法表达的查询，应在编码前显式选择已有且契约可信的 Custom SQL；不要在运行时静默切换，也不要动态拼接 SQL。
+
 ```json
 {
   "select": ["category_id"],
@@ -603,17 +600,25 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
   ],
   "where": { "status": { "$eq": "active" } },
   "groupBy": ["category_id"],
-  "having": [
-    { "columnName": "total_amount", "condition": { "$gte": 1000 } }
-  ],
-  "join": [
-    { "type": "LEFT", "table": "users", "condition": { "user_id": "id" } }
-  ],
+  "having": { "category_id": { "$notNull": true } },
   "orderBy": [{ "total_amount": "desc" }],
   "currentPage": 1,
   "pageSize": 20
 }
 ```
+
+`aggregate[].column` 必须使用真实数据集字段；`aggregate[].alias` 只定义返回结果字段名，不会成为新的数据集字段。
+
+| 位置 | 聚合别名 | 约束 |
+|------|----------|------|
+| `aggregate[].alias` | 支持 | 仅定义返回结果字段名 |
+| `select` | 不支持 | 使用真实数据集字段 |
+| `where` | 不支持 | 使用真实数据集字段 |
+| `having` | 不支持 | 使用真实数据集字段 |
+| `groupBy` | 不支持 | 使用真实数据集字段 |
+| `orderBy` | 支持 | 可以引用聚合输出别名 |
+
+需要按聚合结果过滤且 `aggregate` 无法用真实字段表达时，使用已有且契约可信的 Custom SQL。不要在运行时静默切换到 Custom SQL，也不要动态拼接 SQL。
 
 ## 全局选项
 
@@ -658,11 +663,13 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 
 ## 风险控制
 
+具体命令的 risk、flags 与确认要求以 `lovrabet schema` 为唯一事实来源；下表用于快速理解当前执行边界。
+
 | 等级 | 命令 | 保护 |
 |------|------|------|
-| read | api-doc list/detail, dataset list/detail/sdk-doc, data filter/getOne/aggregate, sql detail/exec, bff detail/exec, app-config get, personal-bff list/detail, file upload/query-url, ocr recognize, kb list/detail/search, schedule validate/list/detail, service validate/list/detail, skill validate/list/diagram-validate/diagram-show, app list, config list/get, logs | OCR 支持 dry-run，只展示服务端调用链路，不上传、不识别 |
-| write | data create, data batchCreate, data update, personal-bff create/update, kb create/update, service import/export/remove, skill install/create/push/diagram-push, workspace init/use, app init/use/import, config set/delete | 支持 dry-run 的命令先预览 |
-| high-risk-write | data delete, personal-bff exec, schedule create/run/delete | 需 `--yes` 或交互确认 |
+| read | api-doc list/detail, dataset list/detail/sdk-doc, data filter/getOne/aggregate, sql detail/exec, bff detail/exec, app-config get, personal-bff list/detail, file upload/query-url, ocr recognize, kb list/detail/search, schedule validate/list/detail, service validate/list/detail, skill install/create/validate/list/diagram-validate/diagram-show, cli-skill install, update, app list, config list/get, logs show | OCR 支持 dry-run，只展示服务端调用链路，不上传、不识别 |
+| write | data create, data batchCreate, data update, personal-bff create/update/exec, kb create/update, service import/export/remove, skill push/diagram-push, workspace init/use, app import, config set/delete | 支持 dry-run 的命令先预览 |
+| high-risk-write | data delete, schedule create/run/delete | 需 `--yes` 或交互确认 |
 
 ## 详细参考
 

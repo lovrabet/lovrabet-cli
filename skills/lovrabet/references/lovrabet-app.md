@@ -1,13 +1,13 @@
 # app — 应用管理
 
-`app` 子命令现在主要负责应用目录发现和旧命令兼容：
+`app` 子命令负责应用目录发现和本地缓存刷新：
 
 - **应用目录发现**：通过远端接口和本地 cache 获取当前 AK 可运行态访问的应用列表
-- **旧命令兼容**：`app init` / `app use` 只保留兼容提示
+- **缓存刷新**：在需要显式更新本地应用目录时使用 `app pull`
 
 > **核心边界**：平台应用列表不再写入 `.lovrabet.json`。`.lovrabet.json` 只保存用户配置；应用目录缓存位于 `~/.lovrabet/cache/...`。
 >
-> 给当前工作目录绑定默认应用时，使用 `lovrabet workspace init/use`，不要再用 `app init/use`。
+> 给当前工作目录绑定默认应用时，使用 `lovrabet workspace init/use`；命令选择取决于当前目录是否已经存在应用绑定。
 
 ## app list — 列出当前 AK 可运行态访问应用
 
@@ -104,34 +104,6 @@ lovrabet app pull --no-cache
 - 平时优先用 `lovrabet app list`；只有你明确想单独刷新缓存时才用 `app pull`
 - `app pull` **不再**把远端应用列表写入 `.lovrabet.json`
 - 它的职责只是“刷新本地 cache”
-
-## app init — 兼容命令
-
-`app init` 仍可执行旧逻辑，但会提示改用新的工作目录初始化入口：
-
-```bash
-lovrabet workspace init --appcode <appcode> [--env daily]
-lovrabet workspace init --app <name> [--env daily]
-```
-
-使用 `workspace init` 的原因：
-
-- 写入目标更明确：只写当前目录 `.lovrabet.json`
-- 不写 AccessKey
-- 支持直接传 `--appcode`
-- 支持传 `--app` 后由当前 AK 可见的已发布应用解析 appcode
-
-## app use — 兼容命令
-
-`app use` 仍保留旧行为，但会提示改用新的工作目录切换入口：
-
-```bash
-lovrabet workspace use --app <name> [--env daily]
-lovrabet workspace use --appcode <appcode> [--env daily]
-lovrabet workspace use --app <name> --appcode <appcode> [--env daily]
-```
-
-`app use` 只用于历史脚本兼容；新文档、新 Skill 和 Agent 行为都应使用 `workspace use`。
 
 详见 [lovrabet-workspace.md](lovrabet-workspace.md)。
 

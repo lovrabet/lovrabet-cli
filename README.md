@@ -47,11 +47,13 @@ lovrabet app list
 
 Lovrabet 运行态 CLI 不要求先创建“项目”或初始化本地工程。通常登录后直接通过 `--app` / `--appcode` 指定目标应用，或先用应用目录和数据集搜索完成应用决议。
 
-如需设置一个默认候选应用，可使用：
+当前目录尚未绑定应用时，使用：
 
 ```bash
-lovrabet app use <name>
+lovrabet workspace init --app <name>
 ```
+
+当前目录已有应用绑定时，使用 `lovrabet workspace use --app <name>` 修改。
 
 ## CLI 能做什么
 

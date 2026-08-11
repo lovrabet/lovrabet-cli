@@ -76,7 +76,7 @@ CLI flag (--appcode, --env, --format, --app ...)
 `defaultApp` 仍然是本地配置字段，但它现在只表示默认候选的远端应用名称。
 
 所以：
-- `app use <name>` 可以只写 `defaultApp`
+- 通过 `workspace init/use --app <name>` 建立或修改命名绑定时会写入 `defaultApp`
 - 运行时通过 cache 解析对应 `appcode`
 - Agent 场景中，`defaultApp` 是第一个验证候选；用户未指定 app 时先查默认候选的数据集，验证不成立再扩大到应用列表
 

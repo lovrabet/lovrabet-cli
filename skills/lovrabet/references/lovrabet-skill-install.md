@@ -25,7 +25,7 @@ lovrabet skill install --project
 
 ## CLI Built-in Skill
 
-`lovrabet skill install` 不再安装 CLI 运行时依赖的内置 Skill。需要安装或刷新 CLI Built-in Skill 时使用：
+`lovrabet skill install` 仅安装当前应用的业务 Skill。安装或刷新 CLI Built-in Skill 时使用：
 
 ```bash
 lovrabet cli-skill install

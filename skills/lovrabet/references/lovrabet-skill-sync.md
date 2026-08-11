@@ -108,7 +108,7 @@ lovrabet skill push --dir ./app-1--sales_playbook --diagram-file ./sales-playboo
 
 `push` 读取目录下的 `SKILL.md`。frontmatter `name` 继续用于推导稳定 `skillCode`；顶层 `displayName` 会作为远端展示名提交到 SkillHub。没有 `displayName` 时，CLI 才回退使用 `lovrabet.skill.json` 中的名称。没有元数据时从目录名推导 `skillCode`，并去掉当前 App 的 `<appCode>--` 前缀。上传前会用该 `skillCode` 在当前 App namespace 下精确查询远端 Skill，命中时先把远端 scope、版本、状态、名称和描述写回 `lovrabet.skill.json`，再重新读取本地目录进入上传逻辑。
 
-`push` 默认创建或更新 personal Skill。发布新 SkillVersion 时 `--diagram-file` 必填；文件内容是 Agent 根据本次 Skill 源码直接编写、且语法正确的原始 Mermaid flowchart，也可传 `--diagram-file -` 从标准输入读取。CLI 不把流程图加入 Skill 包、本地元数据或安装目录，而是与 Skill 包在同一个发布请求中提交。SkillHub 必须明确确认图已校验、已绑定；缺少回执的旧服务会被视为不支持联合发布。流程图缺失、Mermaid 语法错误或服务端拒绝时，整个 push 失败，不先发布无图版本。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
+`push` 默认创建或更新 personal Skill。发布新 SkillVersion 时 `--diagram-file` 必填；文件内容是 Agent 根据本次 Skill 源码直接编写、且语法正确的原始 Mermaid flowchart，也可传 `--diagram-file -` 从标准输入读取。文件可位于 Skill 目录内或外；CLI 不把流程图加入 Skill 包、本地元数据或安装目录，而是与 Skill 包在同一个发布请求中提交。位于 Skill 目录内时，只有 `--diagram-file` 选中的规范化真实路径会从包扫描中排除，其他 `.mmd` 文件仍按普通包文件处理。SkillHub 必须明确确认图已校验、已绑定；缺少回执的旧服务会被视为不支持联合发布。流程图缺失、Mermaid 语法错误或服务端拒绝时，整个 push 失败，不先发布无图版本。若远端刷新后的元数据 scope 是 `company`，默认 personal push 会在上传前失败，并提示使用公司级 push 工作流。Builtin Skill 不能 push，也不能通过 company scope 提交审核。
 
 ## 公司级发布
 

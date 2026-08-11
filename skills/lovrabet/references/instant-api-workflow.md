@@ -106,6 +106,8 @@ lovrabet data getOne --code <code> --params '{"id":123}'
 
 对数据集进行分组、求和、计数、平均值等聚合操作。
 
+`aggregate` 仅支持单个 `DB_TABLE` 数据集；`METADATA` 数据集不支持 `aggregate` 或 Custom SQL。JOIN、跨表统计、数据库特有函数或 `aggregate` 无法表达的查询，应在编码前显式选择已有且契约可信的 Custom SQL；不要在运行时静默切换，也不要动态拼接 SQL。
+
 ```bash
 # 按状态分组求总金额
 lovrabet data aggregate --code <code> --params '{
@@ -120,11 +122,11 @@ lovrabet data aggregate --code <code> --params '{
   "where": {"status":{"$eq":"active"}}
 }'
 
-# 多维聚合：按状态和地区分组，求总金额并过滤
+# 多维聚合：按状态和地区分组，求总金额并按聚合结果排序
 lovrabet data aggregate --code <code> --params '{
   "aggregate": [{"column": "amount","type":"SUM","alias":"total"}],
   "groupBy": ["status","region"],
-  "having": [{"columnName":"total","condition":{"$gte":1000}}],
+  "having": {"status":{"$notNull":true}},
   "orderBy": [{"total":"desc"}]
 }'
 ```
@@ -136,12 +138,24 @@ lovrabet data aggregate --code <code> --params '{
 | `aggregate` | object[] | **必填**。聚合定义列表 |
 | `groupBy` | string[] | 分组字段 |
 | `where` | object | 聚合前过滤（与 filter 相同的 where 语法） |
-| `having` | object[] | 聚合后过滤，如 `[{"columnName":"total","condition":{"$gte":1000}}]` |
+| `having` | object | 聚合后过滤；使用与 `where` 相同的对象结构，字段必须是真实数据集字段，不支持聚合别名 |
 | `select` | string[] | 随聚合结果返回的原始字段 |
-| `join` | object[] | 关联配置，如 `[{"type":"LEFT","table":"users","condition":{"user_id":"id"}}]` |
-| `orderBy` | object[] | 排序，如 `[{"total":"desc"}]` |
+| `orderBy` | object[] | 排序；可以引用聚合输出别名，如 `[{"total":"desc"}]` |
 | `currentPage` | number | 页码 |
 | `pageSize` | number | 每页条数 |
+
+`aggregate[].column` 必须使用真实数据集字段；`aggregate[].alias` 只定义返回结果字段名，不会成为新的数据集字段。
+
+| 位置 | 聚合别名 | 约束 |
+|------|----------|------|
+| `aggregate[].alias` | 支持 | 仅定义返回结果字段名 |
+| `select` | 不支持 | 使用真实数据集字段 |
+| `where` | 不支持 | 使用真实数据集字段 |
+| `having` | 不支持 | 使用真实数据集字段 |
+| `groupBy` | 不支持 | 使用真实数据集字段 |
+| `orderBy` | 支持 | 可以引用聚合输出别名 |
+
+需要按聚合结果过滤且 `aggregate` 无法用真实字段表达时，使用已有且契约可信的 Custom SQL。不要在运行时静默切换到 Custom SQL，也不要动态拼接 SQL。
 
 **聚合类型：**
 
@@ -230,12 +244,7 @@ lovrabet data delete --code <code> --params '{"id":123}' --yes
   ],
   "where": { "status": { "$eq": "active" } },
   "groupBy": ["category_id"],
-  "having": [
-    { "columnName": "total_amount", "condition": { "$gte": 1000 } }
-  ],
-  "join": [
-    { "type": "LEFT", "table": "users", "condition": { "user_id": "id" } }
-  ],
+  "having": { "category_id": { "$notNull": true } },
   "orderBy": [{ "total_amount": "desc" }],
   "currentPage": 1,
   "pageSize": 20

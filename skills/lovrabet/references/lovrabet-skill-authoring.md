@@ -83,7 +83,7 @@ lovrabet skill push --dir .agents/skills/<skillCode> --diagram-file ./<skillCode
 
 建议从 `flowchart TD` 开始，使用清晰的节点、边和条件标签表达作用流程。提交的文件必须是语法正确的 Mermaid；先让 dry-run 通过，再使用同一份文件正式发布。
 
-将原始 Mermaid 保存为 `.mmd` 文本并通过 `--diagram-file` 传给 dry-run 和正式 push；两次必须使用同一份 Skill 源码和 Mermaid。也可以用 `--diagram-file -` 从标准输入读取。任一部分失败时修正后整体重试，不改成分步发布。
+将原始 Mermaid 保存为 `.mmd` 文本并通过 `--diagram-file` 传给 dry-run 和正式 push；两次必须使用同一份 Skill 源码和 Mermaid。文件可以放在 Skill 目录内或外；CLI 会把所选文件作为独立 diagram 提交，并在它位于 Skill 目录内时按规范化真实路径从包扫描中精确排除，不会忽略其他 `.mmd` 文件。也可以用 `--diagram-file -` 从标准输入读取。任一部分失败时修正后整体重试，不改成分步发布。
 
 ## 发布扫描告警
 
