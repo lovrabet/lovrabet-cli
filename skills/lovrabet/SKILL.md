@@ -6,7 +6,7 @@ description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件�
 metadata:
   requires:
     bins: ["lovrabet"]
-    node: ">=20"
+    node: ">=22.20.0"
   cliHelp: "lovrabet --help"
 ---
 
