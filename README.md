@@ -28,15 +28,15 @@ lovrabet --version
 lovrabet --help
 ```
 
-### 2. 安装 CLI Built-in Skill
+### 2. 验证 CLI Built-in Skill
 
-如果你在 Cursor、Claude Code、Codex、Windsurf 等支持 `skills` 的 AI 开发环境中使用 Lovrabet，推荐继续安装 CLI Built-in Skill：
+CLI npm 包会自动安装同版本 Built-in Skill。安装后运行：
 
 ```bash
-npx skills add lovrabet/lovrabet-cli -g -y
+lovrabet doctor
 ```
 
-CLI Built-in Skill 会把 Lovrabet 的命令使用顺序、应用决议规则、真实查数方法、风险边界和排障经验提供给 AI 助手，减少乱猜 app、乱猜字段、误用写命令的问题。当前应用/租户在 SkillHub 中的 personal/company 业务 Skill，应在登录并选择应用后通过 `lovrabet skill install` 安装。
+若诊断提示 Built-in Skill 缺失或版本不一致，使用 `lovrabet cli-skill install` 从当前 CLI 包修复。CLI Built-in Skill 会把 Lovrabet 的命令使用顺序、应用决议规则、真实查数方法、风险边界和排障经验提供给 AI 助手，减少乱猜 app、乱猜字段、误用写命令的问题。当前应用/租户在 SkillHub 中的 personal/company 业务 Skill，应在登录并选择应用后通过 `lovrabet skill install` 安装。
 
 ### 3. 登录并开始使用
 
@@ -79,7 +79,7 @@ Lovrabet CLI 主要覆盖这些运行态场景：
 
 ```bash
 npm install -g @lovrabet/lovrabet-cli@latest
-npx skills add lovrabet/lovrabet-cli -g -y
+lovrabet doctor
 lovrabet auth login
 lovrabet app list
 lovrabet dataset list --name 客户

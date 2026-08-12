@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.1.23
+version: 2.2.0
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -35,6 +35,8 @@ metadata:
 ```bash
 npm install -g @lovrabet/lovrabet-cli
 ```
+
+npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺失、版本不一致或内容不一致，先处理提示的网络/权限问题，再执行 `lovrabet cli-skill install` 从当前 npm 包内修复。详见 [CLI 更新](references/lovrabet-update.md) 与 [诊断](references/lovrabet-doctor.md)。
 
 ## 认证
 
@@ -373,7 +375,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 
 ### CLI 更新
 
-`lovrabet update` 只查询 npm package 的 dist-tags，不依赖 CDN 文件。默认等价于 `--latest`；`--beta` 使用 npm `beta` dist-tag；`--version <version>` 安装指定 semver。更新检查完成后会自动刷新 CLI Built-in Skill，除非显式传 `--no-skills`。
+`lovrabet update` 只查询 npm package 的 dist-tags，不依赖 CDN 文件。默认等价于 `--latest`；`--beta` 使用 npm `beta` dist-tag；`--version <version>` 安装指定 semver。CLI 与 Built-in Skill 一体升级，不提供拆分升级选项；升级后由当前进程验证新版 npm 包的安装结果，同版本检查则直接从当前包内修复。
 
 开源二开配置集中在项目代码的 `src/constant/product.ts`，`src/constant/distribution.ts` 只做兼容导出：
 
@@ -683,6 +685,9 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 | 配置文件参考 | [lovrabet-config.md](references/lovrabet-config.md) |
 | Service Tree | [lovrabet-service-tree.md](references/lovrabet-service-tree.md) |
 | Skill 同步 | [lovrabet-skill-sync.md](references/lovrabet-skill-sync.md) |
+| Skill 安装与 Built-in Skill 修复 | [lovrabet-skill-install.md](references/lovrabet-skill-install.md) |
+| CLI 更新 | [lovrabet-update.md](references/lovrabet-update.md) |
+| CLI 与 Built-in Skill 诊断 | [lovrabet-doctor.md](references/lovrabet-doctor.md) |
 | Skill 创建、更新与发布 | [lovrabet-skill-authoring.md](references/lovrabet-skill-authoring.md) |
 | 数据集发现 | [dataset-discovery-workflow.md](references/dataset-discovery-workflow.md) |
 | Instant API | [instant-api-workflow.md](references/instant-api-workflow.md) |

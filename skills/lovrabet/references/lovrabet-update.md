@@ -1,12 +1,8 @@
-# update — 更新 CLI
+# update — 一体更新 CLI 与 Built-in Skill
 
-`lovrabet update` 从 npm registry 查询当前 CLI 包的 dist-tags，不依赖 CDN 配置文件。更新检查完成后会刷新 CLI Built-in Skill，保证 Agent 本地工作流与 CLI 版本同步。
+`lovrabet update` 从 npm registry 查询 CLI 包的 dist-tags，不依赖 CDN 配置文件。CLI 与 Built-in Skill 一体升级，不提供拆分升级模式。
 
-## 命令策略
-
-- 默认升级入口是 `lovrabet update`。日常使用时优先让 CLI 自动解析 latest 并更新，避免用户关心底层安装工具。
-- 需要预览版本时使用 `lovrabet update --beta`；需要精确到某个版本时使用 `lovrabet update --version <version>`。
-- `npm install -g @lovrabet/lovrabet-cli@<version>` 只作为命令异常、环境修复或精确复现版本的手动兜底；普通升级不把它作为首选路径。
+默认升级入口是 `lovrabet update`；beta 预览和精确版本复现才使用对应选项。
 
 ## 命令
 
@@ -14,54 +10,25 @@
 # 默认等价于 --latest
 lovrabet update
 
-# 安装 npm latest dist-tag
 lovrabet update --latest
-
-# 安装 npm beta dist-tag
 lovrabet update --beta
-
-# 安装指定版本
-lovrabet update --version 2.0.6
-
-# 只更新 CLI，不刷新 CLI Built-in Skill
-lovrabet update --latest --no-skills
+lovrabet update --version <version>
 ```
+
+`--latest`、`--beta`、`--version <version>` 互斥；精确版本必须是完整 semver，例如 `2.1.23` 或 `2.2.0-beta.1`。
 
 ## 行为
 
-- `--latest`、`--beta`、`--version <version>` 互斥
-- 默认目标是 npm `latest` dist-tag
-- `--beta` 目标是 npm `beta` dist-tag
-- `--version` 必须是完整 semver，例如 `2.0.6` 或 `2.0.7-beta.1`
-- 成功检查或更新 CLI 后，默认执行 CLI Built-in Skill 刷新
-- CLI Built-in Skill 刷新失败只报警，不让 CLI 更新失败
+- npm 安装包携带同版本 Built-in Skill，安装阶段自动完成 Agent Skill 安装。
+- CLI 升级成功后，旧进程只验证目标版本 Skill 是否已安装，不使用旧包内容重复覆盖。
+- CLI 已经是目标版本时，命令从当前 npm 包内检查并修复 Built-in Skill。
+- Skill 缺失、版本不一致或验证失败时，命令返回失败并提示 `lovrabet cli-skill install`；不要把“CLI 包已更新”误报为完整成功。
+- `lovrabet skill install` 仍只管理当前应用的业务 Skill，与 Built-in Skill 生命周期相互独立。
 
-## 开源配置点
-
-开源二开配置集中在 `src/constant/product.ts`，`src/constant/distribution.ts` 只保留给更新逻辑使用的兼容导出：
-
-| 常量 | 说明 |
-|------|------|
-| `PRODUCT_CONFIG.cliBinName` | CLI 可执行命令名 |
-| `PRODUCT_CONFIG.cliDisplayName` | 帮助与诊断中的 CLI 展示名 |
-| `PRODUCT_CONFIG.npmPackageName` | npm 包名 |
-| `PRODUCT_CONFIG.skillSource` | CLI Built-in Skill 安装源 |
-| `PRODUCT_CONFIG.npmRegistryBaseUrl` | npm registry 地址 |
-| `PRODUCT_CONFIG.envPrefix` | 环境变量前缀 |
-| `PRODUCT_CONFIG.configFileNames` | 配置文件查找名 |
-| `PRODUCT_CONFIG.domains` | 默认服务域名 |
-| `PRODUCT_CONFIG.userCenterDisplayName` / `accessKeyCreatePath` | AK 创建提示 |
-
-> 发布二开包时，`package.json` 的 `name` / `bin` 仍需与 `PRODUCT_CONFIG.npmPackageName` / `cliBinName` 保持一致。
-
-## 跳过 Skill 刷新
+手动复现或修复 npm 安装问题时，可以使用：
 
 ```bash
-lovrabet update --latest --no-skills
-```
-
-测试或离线环境也可以复用 skill 安装的跳过环境变量：
-
-```bash
-LOVRABET_SKIP_NPX_SKILLS=1 lovrabet update --latest
+npm install -g @lovrabet/lovrabet-cli@<version>
+lovrabet doctor
+lovrabet cli-skill install
 ```
