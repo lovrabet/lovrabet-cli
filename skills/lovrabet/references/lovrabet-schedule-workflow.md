@@ -94,19 +94,25 @@ lovrabet schedule create \
 
 ## 查看定时任务
 
-查看第一页：
+按服务端要求分别查看周期或单次计划。查看周期计划第一页：
 
 ```bash
-lovrabet schedule list --limit 20
+lovrabet schedule list --kind CRON --limit 20
+```
+
+查看单次计划第一页：
+
+```bash
+lovrabet schedule list --kind ONCE --limit 20
 ```
 
 返回 `nextCursor` 时，把它原样传给下一次查询：
 
 ```bash
-lovrabet schedule list --limit 20 --cursor '<NEXT_CURSOR>'
+lovrabet schedule list --kind CRON --limit 20 --cursor '<NEXT_CURSOR>'
 ```
 
-不要解析、修改或拼接 cursor。
+翻页时必须保持 `--kind` 不变，不要解析、修改或拼接 cursor。
 
 查看详情：
 
