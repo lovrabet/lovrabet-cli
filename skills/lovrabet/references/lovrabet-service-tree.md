@@ -185,6 +185,8 @@ Backend Function 动作示例：
 }
 ```
 
+SQL action 的运行态契约固定为 `sqlCode` + `params`。manifest 必须绑定可信契约对应的 `sqlCode`，`params` 只包含该 SQL 契约定义的业务参数；校验或执行失败时，报告真实错误并停止。
+
 ## flags 和 map
 
 `flags` 推荐对象写法：

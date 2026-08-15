@@ -8,6 +8,8 @@
 
 `sql` 命令组用于消费 Custom SQL；Custom SQL 和 Backend Function 都不是“先猜再试”的能力。
 
+SQL 运行态的唯一执行契约是 `sqlCode` + `params`，其中 `params` 只包含当前能力契约定义的业务参数。标识无法唯一确认、参数无效或执行失败时，报告真实错误并停止；只有可信业务契约或用户明确指示要求时，才切换到其他可信契约绑定的能力。
+
 运行时复用既有能力的标准顺序：
 
 1. 先判断 app 是否明确
@@ -43,6 +45,8 @@ lovrabet sql detail --sqlcode <code>
 ```bash
 lovrabet sql exec --sqlcode <code> --params '<json>'
 ```
+
+普通只读查询在平台 `sqlCode` 权限满足且不需要额外业务授权时，可按可信契约直接执行对应的 Custom SQL。可信业务契约明确要求按当前用户、角色、数据范围或业务规则额外控制时，使用已有 BFF，由 BFF 完成业务校验后，按可信契约执行对应的 `sqlCode`。
 
 ## Backend Function 工作流
 
@@ -123,6 +127,7 @@ Backend Function 返回值应包含 handoff 所需结果：已创建记录、已
 - 不要在不知道 `sqlCode` 的情况下直接跑 `sql exec`
 - 不要在不知道函数名的情况下直接跑 `bff exec`
 - 不要在 app 未明确时直接默认当前 app 一定对
+- `--params` 只传当前 Custom SQL 契约定义的业务参数
 
 ## 推荐配合命令
 

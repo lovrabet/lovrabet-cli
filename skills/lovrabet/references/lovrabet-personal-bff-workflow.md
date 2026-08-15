@@ -13,7 +13,7 @@
 
 脚本通过 `` context.client.models[`dataset_${datasetCode}`] `` 获取 Dataset accessor。当前支持 `create`、`batchCreate`、`update`、`delete`、`getOne`、`findOne`、`getList`、`filter` 和 `aggregate`。
 
-能由 Dataset Instant API 表达时，优先直接调用对应方法。只有 Instant API 无法表达需求，且已有契约可信的 Custom SQL 时，才使用 `context.client.sql.execute({ sqlCode, params })`。能力选择应在编码前完成；不得先执行 `aggregate`，再因权限、参数或运行错误静默回退 Custom SQL。
+能由 Dataset Instant API 表达时，优先直接调用对应方法。只有 Instant API 无法表达需求，且已有契约可信的 Custom SQL 时，才使用 `context.client.sql.execute({ sqlCode, params })`。运行态 SQL 的唯一契约是 `sqlCode` + `params`；personal BFF 只接收当前能力契约定义的业务参数。能力选择应在执行前完成：先依据可信契约选择 Dataset Instant API 或 Custom SQL，再调用对应入口。任何步骤失败时，报告真实错误并停止。只有可信业务契约或用户明确指示要求时，才切换到其他可信契约绑定的能力。
 
 同一数据集批量新增时，向 `batchCreate` 直接传非空对象数组；`batchCreate` 返回新记录 ID 数组，顺序与输入一致。不要把 `lovrabet data batchCreate` 兼容的 `{"items":[...]}` 包装传给 BFF Dataset accessor。批量更新仍调用 `update({ id, ...fields })`，其中 `id` 可以是单值或数组；不存在 `batchUpdate()`，也不要把多条更新记录数组直接传给 `update`。批量数量不得超过运行时上限（默认 1000 条）。示例字段必须替换为已确认的真实数据集字段：
 
