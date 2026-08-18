@@ -1,8 +1,8 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.2.3
-description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、用户级外部账号、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、文件上传、OCR 识别、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、发票识别、图片识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
+version: 2.2.4
+description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
     bins: ["lovrabet"]
@@ -12,7 +12,7 @@ metadata:
 
 # Lovrabet 运行态 CLI
 
-面向业务系统运行态的 AI 操作套件。它把应用目录、数据集、Instant API 数据操作、Custom SQL、Backend Function、文件上传、OCR、定时任务和诊断能力收束成稳定命令，让业务人员、交付实施、业务运维和 AI Agent 可以从客户、订单、库存、工单、发票和附件等真实业务对象出发，完成查询、核对、执行、识别、联调和排障。
+面向业务系统运行态的 AI 操作套件。它把应用目录、业务角色与权限、数据集、Instant API 数据操作、Custom SQL、Backend Function、文件上传、OCR、定时任务和诊断能力收束成稳定命令，让业务人员、交付实施、业务运维和 AI Agent 可以从客户、订单、库存、工单、发票和附件等真实业务对象出发，完成查询、核对、执行、识别、联调和排障。
 
 它不是让团队重新学习一套后台路径，而是把企业系统里的数据、规则、接口和历史经验整理成 AI 可以理解、调用、审计和复用的业务操作入口。
 
@@ -24,6 +24,7 @@ metadata:
 
 - 流程 / 决策：
   - [应用决议](guides/app-resolution.md)
+  - [运行态角色与权限](guides/role-and-permission-workflow.md)
   - [数据集与数据流程](guides/dataset-and-data-workflow.md)
   - [Custom SQL 与 Backend Function 流程](guides/sql-and-bff-workflow.md)
   - [排障](guides/troubleshooting.md)
@@ -40,10 +41,9 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 
 ## 认证
 
-当前主路径是 **User Access Key（client-ak）**。优先级：**CLI flags > 环境变量 > 配置文件**。
+只支持 **User Access Key（client-ak）**。优先级：**CLI flags > 环境变量 > 配置文件**。
 
-1. **User AK**：`.lovrabet.json` 或 `LOVRABET_ACCESS_KEY` 配 **`accessKey`**（适合 CI）；有 `accessKey` 时走 **client-ak**
-2. **Cookie**：历史兼容读取，已不是推荐主路径；新文档与 Agent 指导默认按 AK 流程处理
+`.lovrabet.json` 或 `LOVRABET_ACCESS_KEY` 配置 **`accessKey`**（适合 CI）；所有需要认证的运行态命令均使用该身份。
 
 详见 [认证参考](references/lovrabet-auth.md)。
 
@@ -111,6 +111,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 - `dataset detail` 核对当前数据集字段、关联和操作信息。
 - `sql detail` 核对当前应用下的 Custom SQL 名称、数据库和 SQL 内容。它不单独证明业务口径、参数约束或副作用。
 - `bff detail` 按当前 `appCode + functionName` 解析运行态 Backend Function ENDPOINT，只返回名称、描述、版本和更新时间等元数据，不返回输入输出、函数类型或副作用契约。
+- `notification config-list` 按当前应用和渠道类型查询应用级通知配置，只返回用于选择配置的安全身份字段和 `configCode`；它不返回渠道地址或凭证，也不证明后续通知发送已经获得授权。
 - 后续新增能力如果通过 schema、manifest、签名元数据或其他已注册入口提供可信契约，按该适配器验证，不强制仿造 `detail` 命令。
 
 参数值、执行意图和执行授权可以由用户明确提供；参数结构、输入输出和真实副作用必须来自可信业务 Skill 或平台已确认契约。技术契约无法补齐时保持未知，不自动执行。
@@ -278,6 +279,11 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **config** | `get` | 读取配置项 | read | 本地 |
 | **config** | `set` | 写入配置项 | write | 本地 |
 | **config** | `delete` | 删除配置项 | write | 本地 |
+| **role** | `list` / `detail` | 查询当前应用的业务角色 | read | AK |
+| **role** | `create` / `update` / `delete` | 管理当前应用的自定义业务角色 | high-risk-write | AK |
+| **role** | `user-add` / `user-remove` | 调整业务角色成员 | high-risk-write | AK |
+| **permit** | `page-get` / `role-menus` / `dataset-get` | 查询页面、菜单和数据集权限 | read | AK |
+| **permit** | `page-set` / `role-menus-set` / `dataset-set` | 调整页面、菜单和数据集权限 | high-risk-write | AK |
 | **service** | `validate` | 校验 Service Tree manifest 或本地 registry | read | 本地 |
 | **service** | `import` | 导入 Service Tree manifest 或 registry 到 `~/.lovrabet/service.json` | write | 本地 |
 | **service** | `export` | 从本地 registry 导出 Service Tree manifest | write | 本地 |
@@ -310,6 +316,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **sql** | `exec` | 执行 Custom SQL | read | AK |
 | **bff** | `detail` | 查看 Backend Function 详情 | read | AK |
 | **bff** | `exec` | 执行 Backend Function | read | AK |
+| **notification** | `config-list` | 查询当前应用的应用级通知渠道配置和 configCode | read | AK |
 | **app-config** | `get` | 按 key 获取当前应用的运行态 app-config value | read | AK |
 | **user-account** | `bind` | 按 provider 绑定当前 AccessKey 所属用户的外部账号 | write | AK |
 | **personal-bff** | `list` | 查看当前用户 personal BFF | read | AK |
@@ -319,7 +326,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **personal-bff** | `exec` | 按已知 ID 执行 personal BFF | write | AK |
 | **file** | `upload` | 上传本地文件到当前运行态应用 | read | AK |
 | **file** | `query-url` | 查询已上传文件的访问 URL，默认短效，可显式 3 年长期 | read | AK |
-| **ocr** | `recognize` | 对 URL 或本地文件执行 OCR 识别 | read | AK |
+| **ocr** | `recognize` | 提取票证类业务材料中的文字与结构化字段 | read | AK |
 | **kb** | `list` | 查看 personal 知识库条目 | read | AK |
 | **kb** | `detail` | 查看 personal 知识库正文与 RAG 状态 | read | AK |
 | **kb** | `create` | 从本地文件创建 personal 知识库 | write | AK |
@@ -422,6 +429,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | 执行 Custom SQL | `lovrabet sql exec --sqlcode <code> --params '{"key":"value"}'` |
 | 查看 Backend Function | `lovrabet bff detail --name <functionName>` |
 | 执行 Backend Function | `lovrabet bff exec --name <functionName> --params '{"key":"value"}'` |
+| 查询应用级通知配置 | `lovrabet notification config-list [--type EMAIL|FEISHU|DINGTALK|WECOM|WEBHOOK]` |
 | 获取运行态 app-config value | `lovrabet app-config get <key>` |
 | Agent 使用 app-config value | Agent 调用 `lovrabet app-config get <key>` 获取并在当前任务中消费 |
 | 查看 personal BFF | `lovrabet personal-bff detail --id <id>` |
@@ -531,11 +539,15 @@ lovrabet data delete --code <datasetCode> --params '{"id":123}' --yes
 
 ## OCR 识别工作流
 
-`lovrabet ocr recognize` 用于对远程 URL 或本地文件执行 OCR，支持 dry-run 预览。当前服务端 `/client/ocr` 只接受 URL，识别本地文件时 CLI 会按上传、查询短效 URL、OCR 的顺序串联执行；OCR 中间 URL 不使用 `--long-term`。需要把识别结果写入数据集时，先用 `dataset detail` 确认字段，再按 `data create/update` 的 dry-run 和确认规则执行。详见 [OCR 识别工作流](references/lovrabet-ocr-workflow.md)。
+`lovrabet ocr recognize` 面向发票、票据、证照等票证类业务材料的文字与结构化字段提取，不承接通用图片理解。普通照片、截图、商品图、设计稿或图表优先由 Agent 多模态能力处理；模型不能读取通用图片时，只有用户明确需要提取可见文字才使用 OCR 降级。当前服务端 `/client/ocr` 只接受 URL，识别本地文件时 CLI 会按上传、查询短效 URL、OCR 的顺序串联执行；OCR 中间 URL 不使用 `--long-term`。需要把识别结果写入数据集时，先用 `dataset detail` 确认字段，再按 `data create/update` 的 dry-run 和确认规则执行。详见 [OCR 识别工作流](references/lovrabet-ocr-workflow.md)。
 
 ## 定时任务工作流
 
 `lovrabet schedule` 用于校验、创建、查询、立即运行和删除当前应用下的 UTC 定时任务。创建前必须核对应用、执行时间、重复规则、标题、完整 prompt 和 channel；创建、立即运行和删除都先执行 `--dry-run`，取得用户明确确认后再执行。详见 [定时任务工作流](references/lovrabet-schedule-workflow.md)。
+
+## 应用级通知配置查询
+
+`lovrabet notification config-list` 按当前应用和渠道类型查询应用级通知配置，用于获得已存在配置的 `configCode`。`--type` 默认 `EMAIL`；返回结果只用于选择配置，不发送通知，也不修改渠道。多个候选无法唯一判断时，向用户确认，不要默认取第一条。完整参数、安全输出和 `configCode` / `channelCode` 边界见 [应用级通知配置查询](references/lovrabet-notification-config-list.md)。
 
 ## Skill 与知识库边界
 
@@ -547,7 +559,7 @@ Agent 执行 Skill 需要 app-config value 时，也调用 `lovrabet app-config 
 
 `skill push` 上传前先检查 `SKILL.md` 和 frontmatter 必要字段；Agent 还必须根据本次源码直接编写 Mermaid 作用流程图并通过 `--diagram-file` 提交，不要求用户提供流程图。CLI 先在本地校验 Mermaid，再把 Skill 包和流程图放在同一次发布请求中；任一部分失败都不报告版本发布成功。历史版本补图或修图时先运行 `skill diagram-show`，只使用它本次返回的 `sourceFingerprint` 和 `expectedDiagramRevision`；`found=false` 仍必须返回版本 fingerprint，且首次写入 revision 为 `0`，不得猜测或复用旧并发参数。随后 CLI 用本地 skillCode 在当前 App namespace 下精确查询远端 Skill，并把远端 metadata 写回 `lovrabet.skill.json`，之后才进入打包上传；`skill push --scope company --dir <dir> --diagram-file <mermaid-file>` 会先做 SkillHub publish validate，再用 `visibility=NAMESPACE_ONLY` 提交审核，不代表版本已立即生效。
 
-frontmatter `name` 固定写稳定 `skillCode`，`displayName` 根据用户实际展示诉求填写人类可读名称并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应写一句用户可直接发送的推荐触发话术，缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `displayName` 与 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
+frontmatter `name` 固定写稳定 `skillCode`，`displayName` 根据用户实际展示诉求填写人类可读名称并会随 push 更新远端；install 会始终物化顶层 `displayName`，缺失时 validate 会给 warning。`description` 应写模型触发语义，说明何时使用、不要使用的边界和关键词；可选的顶层 `example` 应从 `description` 已覆盖的应触发场景中选取一句具体、典型、用户可直接发送的诉求，不能写成“处理这个 Skill”等泛化占位话术。调用方可将它补全为 `/skillCode <example>`；`example` 只面向用户展示，不参与 Agent 隐式路由，也不包含 Skill 名、内部命令或执行步骤。缺失或空白时 validate 只给 warning，不阻断 push。create 只生成 `displayName` 与 `example` 注释提示，不自动编造字段值。Skill 正文、章节、references、占位符、输出协议、明文凭证和外部链接不参与 CLI validate。RuntimeAgent 的 `skill_load`、`skill_update` 等原生工具不属于 CLI 命令，不要把它们写进 `lovrabet` 命令步骤。
 
 用户明确要求配置业务 Skill 的 YAML frontmatter 时，按 [Skill 创建、更新与发布工作流](references/lovrabet-skill-authoring.md) 最小编辑目标 `SKILL.md`：只改用户指定字段，保持稳定 `name`，`metadata.type` 仅使用 `read | write`，不创建或开启 `metadata.internal`，并保留语义不明确的未知字段。修改后先 validate；push scope 必须来自用户明确要求，不得仅根据已安装 Skill 的现有 scope 推断 company 更新授权。company 新版本审核通过前不得声称已经生效。
 
@@ -698,6 +710,7 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 | Instant API | [instant-api-workflow.md](references/instant-api-workflow.md) |
 | Custom SQL 工作流 | [lovrabet-sql-workflow.md](references/lovrabet-sql-workflow.md) |
 | Backend Function 工作流 | [lovrabet-bff-workflow.md](references/lovrabet-bff-workflow.md) |
+| 应用级通知配置查询 | [lovrabet-notification-config-list.md](references/lovrabet-notification-config-list.md) |
 | app-config value 查询 | [lovrabet-app-config.md](references/lovrabet-app-config.md) |
 | 用户级外部账号绑定 | [lovrabet-user-account.md](references/lovrabet-user-account.md) |
 | 文件上传工作流 | [lovrabet-file-workflow.md](references/lovrabet-file-workflow.md) |

@@ -1,6 +1,6 @@
 # auth — 认证管理
 
-当前推荐的认证路径是 **User Access Key（client-ak）**。
+Lovrabet CLI 只使用 User Access Key（client-ak）认证。
 
 ## auth login — 保存 accessKey
 
@@ -125,10 +125,6 @@ CLI flag (--access-key)
 - 结果会缓存在 `~/.lovrabet/cache/<env>/<ak-fingerprint>/my-apps.json`
 
 `auth login` / `auth init` 本身都不会主动把应用目录写进 `.lovrabet.json`。
-
-## Cookie
-
-Cookie 仍保留历史兼容读取，但不再是推荐主路径。新的 Agent 指导和用户文档应默认使用 AK 流程。
 
 ## 参考
 
