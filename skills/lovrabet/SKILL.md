@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.2.4
+version: 2.2.5
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、personal BFF、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -448,8 +448,8 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 
 | 意图 | 命令 |
 |------|------|
-| 校验周期任务 | `lovrabet schedule validate --kind CRON --cron '<CRON>' --title '<标题>' --prompt '<任务说明>' --channel auto` |
-| 校验单次任务 | `lovrabet schedule validate --kind ONCE --scheduled-at '<UTC_ISO_TIME>' --title '<标题>' --prompt '<任务说明>' --channel auto` |
+| 校验周期任务 | `lovrabet schedule validate --kind CRON --cron '<CRON>' --title '<标题>' --prompt '<任务说明>' --model deepseek-v4-flash-0731` |
+| 校验单次任务 | `lovrabet schedule validate --kind ONCE --scheduled-at '<UTC_ISO_TIME>' --title '<标题>' --prompt '<任务说明>' --model deepseek-v4-flash-0731` |
 | 创建前预览 | `lovrabet schedule create ... --dry-run` |
 | 创建计划 | `lovrabet schedule create ... --yes` |
 | 查看周期计划 | `lovrabet schedule list --kind CRON` |
@@ -543,7 +543,7 @@ lovrabet data delete --code <datasetCode> --params '{"id":123}' --yes
 
 ## 定时任务工作流
 
-`lovrabet schedule` 用于校验、创建、查询、立即运行和删除当前应用下的 UTC 定时任务。创建前必须核对应用、执行时间、重复规则、标题、完整 prompt 和 channel；创建、立即运行和删除都先执行 `--dry-run`，取得用户明确确认后再执行。详见 [定时任务工作流](references/lovrabet-schedule-workflow.md)。
+`lovrabet schedule` 用于校验、创建、查询、立即运行和删除当前应用下的 UTC 定时任务。创建前必须核对应用、执行时间、重复规则、标题、完整 prompt 和 model；创建、立即运行和删除都先执行 `--dry-run`，取得用户明确确认后再执行。详见 [定时任务工作流](references/lovrabet-schedule-workflow.md)。
 
 ## 应用级通知配置查询
 
