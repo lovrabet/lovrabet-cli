@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.2.7
+version: 2.3.0
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、Custom SQL/Backend Function、Personal Backend Function、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、service tree、业务服务树、api-doc、dataset、data filter、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -49,13 +49,12 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 
 ### 认证命令选择
 
+- **首次使用或切换节点**：执行 `lovrabet config init`，选择 `cn` / `id`；独立部署使用 `--domain-config <file>`。该命令固定维护全局连接配置，不需要 `--global`
 - **只想更新 AK，尽量保留现有配置**：用户提供 AccessKey 后，使用 `lovrabet auth login --access-key <ACCESS_KEY>`
-- **还没有 AK，需要先自助创建**：Agent 可先执行 `lovrabet auth login --non-interactive` 获取无打扰提示，把 `https://user.lovrabet.com/user/ak` 发给用户；用户把 AccessKey 发给 Agent 后，再执行 `lovrabet auth login --access-key <ACCESS_KEY>`
+- **还没有 AK，需要先自助创建**：Agent 可先执行 `lovrabet auth login --non-interactive` 获取无打扰提示，把命令根据当前 `userDomain` 返回的创建地址发给用户；用户把 AccessKey 发给 Agent 后，再执行 `lovrabet auth login --access-key <ACCESS_KEY>`
 - **想确认当前 AK 对应的是哪个用户**：使用 `lovrabet auth info`
 - **凡是后续命令需要“当前登录用户身份信息”**：统一先执行 `lovrabet auth info` 获取，不要猜当前 AK 对应的人
-- **要从头重建当前作用域认证配置**：使用 `lovrabet auth init`
-- **不要**把 `auth init` 当作普通登录命令；它会清空当前作用域下已有配置，再只写回新的认证结果
-- `auth login --env` 仅作为实现层兼容能力存在，默认不要在指导中主推；需要“清空后重建 + 写 env”时优先用 `auth init --env ...`
+- **修改节点或 Domain**：使用 `lovrabet config init` 重建连接配置，或使用 `config set/delete` 精确修改；`auth login` 不负责节点配置
 
 ## 本地配置原则
 
@@ -228,7 +227,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 - 明确要强制刷新时：`lovrabet app list --no-cache`
 - 仅排查未发布应用是否在远端目录中时：`lovrabet app list --include-unpublished`
 
-`app list` 的应用条目中，应用支持语种以 `languages` 或 `i18nInfo.langs` 为准；`locale` 是 CLI 本地兼容配置字段，不代表应用真实语种。
+`app list` 的应用条目中，应用支持语种以 `languages` 或 `i18nInfo.langs` 为准。本地可用 `config set locale` 写入应用本地化偏好，这不是 CLI 语言，目前命令尚未消费；`data.items[].locale` 来自本地配置覆盖，可能为 `null`，不代表平台语种。
 
 ### 如何根据需求判断使用哪个应用
 
@@ -268,9 +267,8 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 
 | 服务 | 命令 | 说明 | 风险等级 | 认证 |
 |------|------|------|----------|------|
-| **auth** | `login` | 保存 accessKey | — | 本地 |
-| **auth** | `init` | 清空当前作用域配置并重建认证 | write | 本地 |
-| **auth** | `logout` | 清除本地 accessKey | — | 本地 |
+| **auth** | `login` | 保存 accessKey | write | 本地 |
+| **auth** | `logout` | 清除本地 accessKey | write | 本地 |
 | **auth** | `info` | 查询当前 AK 对应的登录用户信息 | read | AK |
 | **app** | `list` | 列出当前 AK 可运行态访问应用（默认仅已发布，远端优先，带缓存） | read | AK |
 | **app** | `pull` | 刷新本地 app cache | write | AK |
@@ -278,6 +276,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **workspace** | `use` | 设置当前工作目录的默认应用上下文 | write | 本地 |
 | **config** | `list` | 查看完整配置 | read | 本地 |
 | **config** | `get` | 读取配置项 | read | 本地 |
+| **config** | `init` | 初始化全局官方节点或独立部署 Domain | write | 本地 |
 | **config** | `set` | 写入配置项 | write | 本地 |
 | **config** | `delete` | 删除配置项 | write | 本地 |
 | **role** | `list` / `detail` | 查询当前应用的业务角色 | read | AK |
@@ -366,7 +365,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | 查看当前 AK 对应的登录用户 | `lovrabet auth info` |
 | 任何依赖“当前登录用户身份”的场景先取身份 | `lovrabet auth info` |
 | 绑定当前用户的钉钉 userId | `lovrabet user-account bind --provider dingtalk --account-id <id> --dry-run`，核对后以相同 provider 和账号 ID 移除 `--dry-run` 正式执行 |
-| 重置并重建认证配置 | `lovrabet auth init --access-key <ACCESS_KEY> [--env daily]` |
+| 首次配置或切换节点 | `lovrabet config init`；自动化使用 `--region cn\|id`，独立部署使用 `--domain-config <file>` |
 | 登出 | `lovrabet auth logout` |
 | 查看当前认证状态 | `lovrabet auth status` |
 | 查看配置 | `lovrabet config list` |
@@ -394,7 +393,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 - `PRODUCT_CONFIG.npmPackageName`：npm 包名
 - `PRODUCT_CONFIG.skillSource`：CLI Built-in Skill 发布源
 - `PRODUCT_CONFIG.envPrefix`：环境变量前缀
-- `PRODUCT_CONFIG.domains`：默认服务域名
+- `PRODUCT_CONFIG.regionDomains`：当前开放的 `cn` / `id` 内置服务域名
 - `PRODUCT_CONFIG.userCenterDisplayName` / `accessKeyCreatePath`：AK 创建提示
 
 ### 数据集与 Instant API
@@ -688,7 +687,7 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 | 等级 | 命令 | 保护 |
 |------|------|------|
 | read | api-doc list/detail, dataset list/detail/sdk-doc, data filter/getOne/aggregate, sql detail/exec, bff detail/exec, app-config get, personal-bff list/detail, file upload/query-url, ocr recognize, kb list/detail/search, schedule validate/list/detail, service validate/list/detail, skill install/create/validate/list/diagram-validate/diagram-show, cli-skill install, update, app list, config list/get, logs show | OCR 支持 dry-run，只展示服务端调用链路，不上传、不识别 |
-| write | data create, data batchCreate, data update, user-account bind, personal-bff create/update/exec, kb create/update, service import/export/remove, skill push/diagram-push, workspace init/use, app import, config set/delete | 支持 dry-run 的命令先预览；账号绑定先核对当前身份、provider 和目标账号 ID |
+| write | auth login/logout, data create, data batchCreate, data update, user-account bind, personal-bff create/update/exec, kb create/update, service import/export/remove, skill push/diagram-push, workspace init/use, app import, config init/set/delete | 支持 dry-run 的命令先预览；账号绑定先核对当前身份、provider 和目标账号 ID |
 | high-risk-write | data delete, schedule create/run/delete | 需 `--yes` 或交互确认 |
 
 ## 详细参考

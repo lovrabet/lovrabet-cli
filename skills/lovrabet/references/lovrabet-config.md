@@ -5,9 +5,9 @@
 这意味着：
 - `accessKey` / `env` / `format` / `riskLevel` / `defaultApp` 等仍然放在 `.lovrabet.json`
 - 当前 AK 在平台上可见的应用列表，放在 `~/.lovrabet/cache/.../my-apps.json`
-- 常规使用不需要先创建本地配置文件；登录后可以直接 `app list` 并通过 `--app` / `--appcode` 操作
+- 首次使用推荐执行 `lovrabet config init` 配置全局节点；未执行时仍按默认中国节点 `cn` 工作
 
-兼容旧名：`.lovrabetrc`（优先级 `.lovrabet.json` > `.lovrabetrc`）。
+只自动读取 `.lovrabet.json`；`.lovrabetrc` 和其他 CLI 的配置文件不参与运行态配置发现。需要导入外部配置时，显式执行 `lovrabet app import --file <path>`。
 
 ## 单应用模式
 
@@ -55,7 +55,23 @@
 | `pageSize` | number | — | 默认分页大小 |
 | `riskLevel` | string | `write` | 允许执行的最高风险等级 |
 | `defaultApp` | string | — | 默认候选应用名称 |
-| `inherit` | boolean | true | 当前目录配置是否继承全局配置 |
+| `region` | string | `cn` | 当前开放的官方节点：`cn` / `id`；默认 `cn` 可省略 |
+| `userDomain` | string | 节点内置值 | User 服务 HTTPS origin 覆盖 |
+| `apiDomain` | string | 节点内置值 | 平台 API HTTPS origin 覆盖 |
+| `runtimeDomain` | string | 节点内置值 | 普通 Runtime HTTPS origin 覆盖 |
+| `skillDomain` | string | 节点默认 | SkillHub HTTPS origin 覆盖 |
+| `kbDomain` | string | 节点默认 | 知识库 HTTPS origin 覆盖 |
+
+五个 Domain 各自独立覆盖同名服务地址。没有显式配置的字段按 `region` 和 `env` 使用内置值；`development` 与 `daily` 共用非生产地址。当前开放的官方节点如下：
+
+| region | env | userDomain | apiDomain | runtimeDomain | skillDomain | kbDomain |
+|--------|-----|------------|-----------|---------------|-------------|----------|
+| `cn` | `production` | `https://user.lovrabet.com` | `https://api.lovrabet.com` | `https://runtime.lovrabet.com` | `https://skills.lovrabet.com` | `https://runtime.lovrabet.com` |
+| `cn` | `development` / `daily` | `https://user-daily.lovrabet.com` | `https://daily-api.lovrabet.com` | `https://daily-runtime.lovrabet.com` | `https://skills-daily.lovrabet.com` | `https://daily-runtime.lovrabet.com` |
+| `id` | `production` | `https://user.lovrabet.id` | `https://api.lovrabet.id` | `https://runtime.lovrabet.id` | `https://skills.lovrabet.id` | `https://runtime.lovrabet.id` |
+| `id` | `development` / `daily` | `https://user-daily.lovrabet.id` | `https://daily-api.lovrabet.id` | `https://daily-runtime.lovrabet.id` | `https://skills-daily.lovrabet.id` | `https://daily-runtime.lovrabet.id` |
+
+`config init` 的完整模式切换、独立部署 JSON 和校验规则见 [配置管理](lovrabet-config-commands.md#config-init--初始化连接配置)。
 
 ## 解析优先级
 
@@ -96,12 +112,16 @@ CLI flag (--appcode, --env, --format, --app ...)
 
 | 作用域 | 查找目录 | 文件名优先级 |
 |--------|---------|------------|
-| 当前目录 | `process.cwd()` | `.lovrabet.json` > `.lovrabetrc` |
-| 全局级 | `~` | 同上 |
+| 当前目录 | `process.cwd()` | 仅 `.lovrabet.json` |
+| 全局级 | `~` | 仅 `.lovrabet.json` |
 
 合并策略：
 - 标量字段：当前目录配置覆盖全局级
 - `defaultApp`：当前目录显式声明 > 全局 `defaultApp`
+- `apps`：当前目录显式声明时整体覆盖全局 `apps`；当前目录未声明时使用全局 `apps`
+- `inherit` 不是受支持的配置项；旧字段会被忽略，可用 `lovrabet config delete inherit` 清理
+
+因此，`lovrabet config init` 虽然固定更新全局连接配置，当前目录文件中的 `region` 或 Domain 仍具有更高优先级。初始化后可执行 `lovrabet doctor` 查看最终生效值。
 
 ## 示例
 
