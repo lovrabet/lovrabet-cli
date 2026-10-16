@@ -169,6 +169,8 @@ lovrabet data aggregate --code <code> --params '{
 
 ### data create — 新建记录
 
+创建记录不自动发起审批。需要审批的业务必须区分“记录已创建”和“流程已启动”，使用已确认的业务提交契约；不要从 create 成功推断提交成功，也不要在启动结果不确定时重复创建。详见[审批消费边界](lovrabet-approval-workflow.md#表单数据与流程发起)。
+
 ```bash
 # 预览
 lovrabet data create --code <code> --params '{"name":"test","amount":100}' --dry-run
@@ -179,6 +181,8 @@ lovrabet data create --code <code> --params '{"name":"test","amount":100}'
 
 ### data batchCreate — 批量新建同一数据集记录
 
+Excel 来源为 METADATA 时使用 [data import-excel](lovrabet-excel-import.md)，保留检查点恢复；DB_TABLE 按 [Excel 转换与分批新增指引](lovrabet-db-table-excel-import.md) 准备 JSON 批次后使用本命令。本命令不读取 XLSX、不自动拆批，不支持导入检查点或 `--resume`。非 Excel 新增保持原有 METADATA/DB_TABLE 兼容。
+
 ```bash
 # 预览
 lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]' --dry-run
@@ -187,9 +191,9 @@ lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]' -
 lovrabet data batchCreate --code <code> --params '[{"name":"a"},{"name":"b"}]'
 ```
 
-`--params` 可以是 JSON 数组，也可以是 `{"items":[...]}`。该命令适合同一数据集多条新增，用于减少请求次数。
+`--params` 可以是 JSON 数组，也可以是 `{"items":[...]}`，不能直接传文件路径。每次调用仅提交当前批次；按目标实际条数/字节限制分批，不套用 `import-excel` 的上限。`--dry-run` 只预览请求，不做服务端字段、约束或权限校验。保存本次批次和真实响应后回读，未知结果先对账，不能直接重发。
 
-不要把 `batchCreate` 当作正式业务流程入口。跨多个数据集、upsert、依赖顺序、频率保护、幂等恢复或 handoff 结果要求，应封装在 Backend Function/CLI service 中，再由内部按需使用 `batchCreate`。Backend Function 写入类执行仍需先确认业务授权、Studio 权限和人工确认语义；CLI 将 `bff exec` 标记为 `read`，不等同于免审批写入。
+普通 `batchCreate` 不承诺跨数据集、upsert、依赖顺序、统一事务或服务端幂等恢复；有这些要求时使用已有可信业务服务/Backend Function。单数据集 METADATA 的专用 `import-excel` 恢复不受此限制。Backend Function 写入仍须核对权限、授权和真实副作用，不能仅因 `bff exec` 标记为 read 就直接写入。
 
 ### data update — 更新记录
 

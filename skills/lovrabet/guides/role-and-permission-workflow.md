@@ -130,6 +130,20 @@ lovrabet permit dataset-set --role <roleId|exactName> --revoke --datasets <datas
 
 多个数据集或动作使用英文逗号分隔。
 
+## Backend Function 动作与多角色
+
+| Dataset 操作 | 需要的动作权限 |
+| --- | --- |
+| `filter`、`getList`、`aggregate` | `DATA_ROW` |
+| `getOne`、`findOne` | `DATA_DETAIL` |
+| `create`、`batchCreate` | `DATA_CREATE` |
+| `update` | `DATA_UPDATE` |
+| `delete` | `DATA_DELETE` |
+
+普通 Backend Function 和 `byTable` 都按目标数据集及实际动作校验。多角色取有效动作授权的并集；一个角色只给查询、另一个角色给创建时，用户可以分别执行获准的动作，不以角色顺序决定。
+
+`SELF` 表示数据范围，不是另一个角色，也不授予创建或修改权限。不要从 `SELF` 推断所有接口都会返回相同范围；以对应操作的可信契约及实际返回为准。配置关联后，主查询带出的关联字段、标签与子表数据沿用主授权；单独查询子数据集仍需子数据集的动作权限。
+
 ## 安全边界
 
 - 只有 ADMIN 或 OWNER 可以执行页面、菜单和数据集权限写入。

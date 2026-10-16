@@ -2,7 +2,7 @@
 
 ## Authentication required
 
-说明当前没有可用的 `accessKey`。
+说明当前没有可用的 `accessKey`，或服务端明确返回业务码 `201`。HTTP `401` 本身不能区分认证失败和权限不足。
 
 优先检查：
 
@@ -15,6 +15,12 @@
 - 先执行 `lovrabet auth login --non-interactive`，到命令根据当前 `userDomain` 返回的地址创建 AccessKey
 - 想保留当前配置，使用 `lovrabet auth login --access-key <ACCESS_KEY>`
 - 想切换节点或重建连接配置，执行 `lovrabet config init --region cn|id|global`，再按需执行 `lovrabet auth login --access-key <ACCESS_KEY>`
+
+## Permission denied（业务码 202）
+
+`permission_denied` 表示权限检查拒绝，本次 HTTP 状态也可能为 `401`。先用 `lovrabet auth info` 确认当前用户，再核对应用、目标数据集及实际动作的角色授权。Backend Function 能进入执行，不代表它访问的每个数据集都已授权，`byTable` 也相同。
+
+保留当前用户和入口，报告拒绝；不要自动重新登录、切换 AK、添加系统执行参数或转用其他入口。只有业务码 `201` 或明确缺少凭证时，才按认证问题处理。
 
 ## 已登录，但业务命令仍失败
 

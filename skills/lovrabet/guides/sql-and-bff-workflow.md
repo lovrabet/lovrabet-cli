@@ -24,7 +24,7 @@ Detail 成功只证明能力存在，不代表可以自动执行。副作用、�
 
 `sql detail` 返回 Custom SQL 的名称、数据库和 SQL 内容；`bff detail` 返回 Backend Function ENDPOINT 名称、描述、版本和更新时间等元数据。它们都不会替业务 Skill 补齐参数结构、业务口径和真实副作用契约。
 
-运行态只消费已发布且契约可信的业务能力，当前类型包括但不限于已治理 Dataset / Instant API（含 `filter`、`getOne`、`aggregate`）、Custom SQL 和 Backend Function。Lovrabet Runtime CLI 尚未提供 Flow 运行态入口，因此 Flow 当前不可消费；未暴露可信入口、输入输出或副作用契约的能力不猜测命令，只对受影响范围输出“不判定”。
+运行态只消费已发布且契约可信的业务能力，当前类型包括但不限于已治理 Dataset / Instant API（含 `filter`、`getOne`、`aggregate`）、Custom SQL、Backend Function 和已有审批任务。审批任务通过 `approval` 命令查询或办理，具体边界见 [审批流运行态办理](../references/lovrabet-approval-workflow.md)。未暴露可信入口、输入输出或副作用契约的能力不猜测命令，只对受影响范围输出“不判定”。
 
 ## Custom SQL 工作流
 

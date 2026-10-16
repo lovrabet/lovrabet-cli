@@ -9,6 +9,8 @@
 
 若已有平台正式 Backend Function，优先复用 `bff detail/exec`。Personal Backend Function 更适合个人工作流、验证和 Agent 生成的轻量端点。
 
+拥有个人脚本不代表拥有脚本访问的数据。个人脚本仍使用服务端确定的当前用户身份，内部 Dataset 与 `byTable` 操作遵循[数据集动作授权规则](lovrabet-bff-workflow.md#内部数据集权限与执行身份)。权限不足时停止，不通过个人脚本绕过数据集权限。
+
 ## Backend Function 内访问 Dataset 与 Custom SQL
 
 在当前应用的 Backend Function 脚本中，优先通过物理表名或 Custom SQL 名解析资源，避免把环境相关的 `datasetCode` / `sqlCode` 写死在新脚本中：
