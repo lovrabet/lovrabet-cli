@@ -1,12 +1,12 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.3.7
+version: 2.3.8
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、Service Tree 业务命令、API 文档发现、数据集查询、Instant API 数据操作、可恢复 Excel 导入、Custom SQL/Backend Function、Personal Backend Function、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、审批待办与任务办理、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、service tree、业务服务树、api-doc、dataset、data filter、Excel 导入、data import-excel、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、approval、审批、待办、approve、reject、transfer、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
     bins: ["lovrabet"]
-    node: ">=22.20.0"
+    node: ">=24.0.0"
   cliHelp: "lovrabet --help"
 ---
 
@@ -17,6 +17,12 @@ metadata:
 它不是让团队重新学习一套后台路径，而是把企业系统里的数据、规则、接口和历史经验整理成 AI 可以理解、调用、审计和复用的业务操作入口。
 
 > **结构化输出与 jq**：需要机器可读 JSON 时优先 **`--format compress`**（单行信封）；需缩进时用 **`--format json`**。二者均可叠加全局 **`--jq '<expr>'`** 缩小输出，详见 [输出格式与 --jq](references/lovrabet-output-format-jq.md)。
+
+## 开发能力交接
+
+先按操作对象与目的区分应用开发和运行态操作，再选择下面的执行流程。用户要创建、修改或发布 Lovrabet 应用级开发资产时，先读 [开发能力交接](guides/development-intent-handoff.md)，例如应用、页面、数据集结构、应用级 BFF/SQL、菜单结构或流程定义；按需引导安装 rabetbase CLI 并交给其 Skill，不先进入运行态 Service Tree 发现流程。
+
+业务数据操作、执行已绑定 BFF/SQL、Personal BFF、角色菜单权限和已有审批任务办理仍由本 Skill 处理；不能仅凭“创建”“修改”判定为应用开发。纯开发任务无需先完成 lovrabet 的 AK 认证；两个 CLI 分别认证，不复制凭证。
 
 ## 使用顺序
 
@@ -164,7 +170,9 @@ Service Tree 只负责定位并绑定执行入口，不是稳定规则的权威�
 
 ## Agent 决策：何时先查 Service Tree
 
-当用户用业务语义提出需求，且没有显式给出底层 `datasetCode`、`sqlCode`、Backend Function 标识或具体 `data/sql/bff` 命令时，先把本地 Service Tree 当作业务命令发现层。
+本节仅适用于已判定为运行态的业务诉求。应用开发按前面的“开发能力交接”执行；混合任务只对其中的运行态部分应用本节规则。
+
+当用户用业务语义提出运行态需求，且没有显式给出底层 `datasetCode`、`sqlCode`、Backend Function 标识或具体 `data/sql/bff` 命令时，先把本地 Service Tree 当作业务命令发现层。
 
 典型触发语义包括：“查我的需求”“看这个项目的评论”“列出待处理订单”“客户详情”“库存预警”“工单跟进”等。此时优先执行本地只读命令：
 
@@ -345,6 +353,7 @@ Service Tree 未命中不是失败条件，也不代表业务能力不存在。�
 | **schedule** | `detail` | 查看定时任务详情 | read | AK |
 | **schedule** | `run` | 立即触发一次 Task（需确认） | high-risk-write | AK |
 | **schedule** | `delete` | 删除计划并停止未来触发（需确认） | high-risk-write | AK |
+| **issue** | `report` | 提交问题日志，使用当前身份，应用可选 | write | [问题上报](references/lovrabet-issue-report.md) |
 | **logs** | `show` | 查看命令执行历史 | read | 本地 |
 
 ## 意图 → 命令索引
@@ -729,6 +738,7 @@ personal KB 使用文件型 create/update。更新前先 `kb detail` 查看正�
 | Personal Backend Function 工作流 | [lovrabet-personal-bff-workflow.md](references/lovrabet-personal-bff-workflow.md) |
 | 知识库工作流 | [lovrabet-kb-workflow.md](references/lovrabet-kb-workflow.md) |
 | 定时任务工作流 | [lovrabet-schedule-workflow.md](references/lovrabet-schedule-workflow.md) |
+| 问题日志上报 | [lovrabet-issue-report.md](references/lovrabet-issue-report.md) |
 | 日志 | [lovrabet-logs.md](references/lovrabet-logs.md) |
 
 METADATA 原生 Excel 图片导入支持浮动图片、Microsoft Excel 单元格 richData 和独立 WPS DISPIMG。图片列映射到 IMAGE 字段；先 `--dry-run` 核验服务端能力，恢复时保留主检查点与 `.rows.json`，详见[可恢复 Excel 导入](references/lovrabet-excel-import.md)。
