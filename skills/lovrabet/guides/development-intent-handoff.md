@@ -1,15 +1,17 @@
 # 开发能力交接
 
-用户要开发 Lovrabet 应用时，由 rabetbase CLI 与其 Skill 完成；lovrabet 负责识别能力边界、按需引导安装并传递原任务。交接完成后继续原任务，不让用户重新描述需求。
+先判断用户是在咨询开发方式、讨论方案，还是请求执行。咨询或方案讨论时，直接回答所问，不因提及开发就启动安装或认证；仅询问影响回答的缺失信息。
+
+用户请求执行 Lovrabet 开发任务时，保留已有需求和上下文，按下文流程交接 rabetbase CLI 内置 Skill（名称为 `rabetbase`，以下简称“rabetbase Skill”），并依据实际能力推进。尊重用户明确的操作方式；需要用户完成某一步时，说明该步骤及后续衔接。不要索要密码或含密码的连接串。
 
 ## 1. 按对象和操作判断
 
 | 用户要做什么 | 使用哪项能力 |
 | --- | --- |
-| 创建 Lovrabet 应用、创建或修改页面、发布应用或页面 | rabetbase Skill |
-| 新增数据集、修改字段与关联结构 | rabetbase Skill |
-| 创建或修改应用级 Backend Function、Custom SQL 定义、菜单结构 | rabetbase Skill |
-| 创建、修改或发布审批流、工作流的流程定义 | rabetbase Skill |
+| 创建 Lovrabet 应用、创建或修改页面、发布应用或页面 | rabetbase CLI 内置 Skill |
+| 新增数据集、修改字段与关联结构 | rabetbase CLI 内置 Skill |
+| 创建或修改应用级 Backend Function、Custom SQL 定义、菜单结构 | rabetbase CLI 内置 Skill |
+| 创建、修改或发布审批流、工作流的流程定义 | rabetbase CLI 内置 Skill |
 | 查询、新增或修改业务记录，导入 Excel | lovrabet 的 dataset/data 能力 |
 | 执行已有且可信契约绑定的 BFF/SQL | lovrabet 的 bff/sql 能力 |
 | 创建、修改或执行 Personal Backend Function | lovrabet 的 personal-bff 能力 |
