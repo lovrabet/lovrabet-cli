@@ -1,7 +1,7 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.3.10
+version: 2.3.11
 description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、API 文档发现、数据集查询、Instant API 数据操作、可恢复 Excel 导入、Custom SQL/Backend Function、Personal Backend Function、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、审批待办与任务办理、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、api-doc、dataset、data filter、Excel 导入、data import-excel、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、approval、审批、待办、approve、reject、transfer、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
@@ -379,7 +379,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 | 删除计划 | `lovrabet schedule delete --schedule-id <SCHEDULE_ID> --dry-run`，确认后加 `--yes` |
 
 创建、立即运行和删除前，读取
-[定时任务工作流](references/lovrabet-schedule-workflow.md)。
+[定时任务工作流](references/lovrabet-schedule-workflow.md)。创建前必须先完成其中的「检查任务能否无人值守完整执行」：从 `lovrabet schema` 导出 `risk == "read"` 的完整命令集合，确认 prompt 的完整执行流程（含条件分支、清理和自停步骤）不依赖 `write`/`high-risk-write` 命令或人工交互。
 
 ### 文件上传
 
@@ -463,7 +463,7 @@ lovrabet data delete --code <datasetCode> --params '{"id":123}' --yes
 
 ## 定时任务工作流
 
-`lovrabet schedule` 用于校验、创建、查询、立即运行和删除当前应用下的 UTC 定时任务。创建前必须核对应用、执行时间、重复规则、标题、完整 prompt 和 model；创建、立即运行和删除都先执行 `--dry-run`，取得用户明确确认后再执行。详见 [定时任务工作流](references/lovrabet-schedule-workflow.md)。
+`lovrabet schedule` 用于校验、创建、查询、立即运行和删除当前应用下的 UTC 定时任务。定时任务无人值守自动执行：创建前必须先完成任务能力检查——从 `lovrabet schema` 导出 `risk == "read"` 的完整命令集合，确认完整执行流程（含条件分支、异常处理、通知、清理和自停步骤）不依赖 `write`/`high-risk-write` 命令或人工交互；`schedule validate` 只校验字段、时间、模型和 prompt 格式，不检查能力依赖。随后核对应用、执行时间、重复规则、标题、完整 prompt 和 model；创建、立即运行和删除都先执行 `--dry-run`，取得用户明确确认后再执行。详见 [定时任务工作流](references/lovrabet-schedule-workflow.md)。
 
 ## 应用级通知配置查询
 
