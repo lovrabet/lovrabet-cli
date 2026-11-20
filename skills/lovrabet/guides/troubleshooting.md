@@ -12,7 +12,7 @@
 
 如果确认只是没登录：
 
-- 先执行 `lovrabet auth login --non-interactive`，到命令根据当前 `userDomain` 返回的地址创建 AccessKey
+- 先执行 `lovrabet auth login --non-interactive`，到命令返回的地址创建 AccessKey
 - 想保留当前配置，使用 `lovrabet auth login --access-key <ACCESS_KEY>`
 - 想切换节点或重建连接配置，执行 `lovrabet config init --region cn|id|global`，再按需执行 `lovrabet auth login --access-key <ACCESS_KEY>`
 

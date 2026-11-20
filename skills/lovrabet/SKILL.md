@@ -1,8 +1,8 @@
 ---
 name: lovrabet
 displayName: Lovrabet 运行态 CLI
-version: 2.3.12
-description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、API 文档发现、数据集查询、Instant API 数据操作、可恢复 Excel 导入、Custom SQL/Backend Function、Personal Backend Function、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、审批待办与任务办理、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、api-doc、dataset、data filter、Excel 导入、data import-excel、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、approval、审批、待办、approve、reject、transfer、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
+version: 2.4.0
+description: "Lovrabet 运行态 CLI — 面向业务场景的 AI 操作套件，通过 lovrabet 命令管理应用目录、业务角色与权限、用户级外部账号、API 文档发现、数据集查询、Instant API 数据操作、可恢复 Excel 导入、Custom SQL/Backend Function、Personal Backend Function、文件上传、面向票证类业务材料文字与结构化字段提取的 OCR、审批待办与任务办理、定时任务、Skill、知识库与运行态 app-config key 状态检查。触发词：云图、lovrabet、lovrabet-cli、指标查询、统计口径、经营报告、业务角色、角色成员、页面权限、菜单权限、数据集权限、user-account bind、provider 外部账号绑定、钉钉 userId 绑定、api-doc、dataset、data filter、Excel 导入、data import-excel、file upload、file query-url、ocr recognize、OCR 识别、票证文字提取、票证字段提取、发票识别、票据识别、证照识别、附件上传、personal-bff、approval、审批、待办、approve、reject、transfer、schedule、定时任务、cron、kb、skill、sql exec、bff exec、app-config、accessKey、compress、jq。"
 metadata:
   requires:
     bins: ["lovrabet"]
@@ -20,11 +20,17 @@ metadata:
 
 ## 开发能力交接
 
-先按操作对象与目的区分应用开发和运行态操作，再选择下面的执行流程。用户要创建、修改或发布 Lovrabet 应用级开发资产时，先读 [开发能力交接](guides/development-intent-handoff.md)，例如应用、页面、数据集结构、应用级 BFF/SQL、菜单结构或流程定义；按需引导安装 rabetbase CLI 并交给其 Skill，不先进入运行态能力发现流程。
+指标体系是应用级的：指标归属企业的具体应用，以 AppCode 和指标名定位，页面与业务 Skill 按权限复用；登记或发布不改变资产归属，也不授予跨应用或跨企业访问权限。
+
+任务决定工具，当前账号在目标应用的实际操作权限决定能否执行；不识别或要求用户证明岗位。查询、分析和报告使用 lovrabet；创建或修改应用级指标及其 SQL/BFF 使用 rabetbase。指标体系可选；先澄清业务目标，Agent 根据已有能力自主判断是否需要开发并进入开发交接，不默认让用户选择建设路径。既有授权内连续推进，不因缺数自动扩大安装、写入或发布授权，也不切换身份绕过限制。
+
+先按操作对象与目的区分应用开发和运行态操作，再选择下面的执行流程。用户要创建、修改或发布 Lovrabet 应用级开发资产时，先读 [开发能力交接](guides/development-intent-handoff.md)，例如应用、页面、数据集结构、应用级指标口径及其 BFF/SQL、菜单结构或流程定义；按需引导安装 rabetbase CLI 并交给其 Skill，不先进入运行态能力发现流程。
 
 业务数据操作、执行已绑定 BFF/SQL、Personal BFF、角色菜单权限和已有审批任务办理仍由本 Skill 处理；不能仅凭“创建”“修改”判定为应用开发。纯开发任务无需先完成 lovrabet 的 AK 认证；两个 CLI 分别认证，不复制凭证。
 
 ## 使用顺序
+
+日报、周报、经营汇总、综合分析或继续未完成报告，使用已安装的 `lovrabet-report-generation` Skill；完整匹配的企业业务 Skill 可直接使用，单值/身份查询保持简短。按宿主发现能力加载稳定名称，不假设安装目录相邻；配套缺失时说明该流程尚不可加载并交管理员处理，已有可信查询能力仍可使用。一次任务只由一条流程组织，不重复取数、生成或投递。
 
 先看 guides，再查 references。
 
@@ -34,6 +40,7 @@ metadata:
   - [数据集与数据流程](guides/dataset-and-data-workflow.md)
   - [可恢复 Excel 导入](references/lovrabet-excel-import.md)
   - [DB_TABLE 的 Excel 转换与分批新增](references/lovrabet-db-table-excel-import.md)
+  - [指标查询与分析](guides/metric-consumption.md)：应用级指标、metric exec 参数预演、契约透传与结果核对、统计口径、分母、覆盖与报告表达
   - [Custom SQL 与 Backend Function 流程](guides/sql-and-bff-workflow.md)
   - [排障](guides/troubleshooting.md)
   - [审批流运行态办理](references/lovrabet-approval-workflow.md)
@@ -46,7 +53,7 @@ metadata:
 npm install -g @lovrabet/lovrabet-cli
 ```
 
-npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺失、版本不一致或内容不一致，先处理提示的网络/权限问题，再执行 `lovrabet cli-skill install` 从当前 npm 包内修复。详见 [CLI 更新](references/lovrabet-update.md) 与 [诊断](references/lovrabet-doctor.md)。
+npm 包携带同版本 Built-in Skill；首次 npm 安装后必须执行 `lovrabet cli-skill install` 显式安装。若 `lovrabet doctor` 报告缺失、版本不一致或内容不一致，先处理提示的网络/权限问题，再执行 `lovrabet cli-skill install` 从当前 npm 包内修复。详见 [CLI 更新](references/lovrabet-update.md) 与 [诊断](references/lovrabet-doctor.md)。
 
 ## 认证
 
@@ -60,7 +67,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 
 - **首次使用或切换节点**：执行 `lovrabet config init`，选择当前已开放国家/地区；独立部署优先导入 `lovrabet-routing/v1` 清单。该命令只读取运行态连接所需 Domain，忽略清单中的其他消费者字段，并固定维护全局连接配置
 - **只想更新 AK，尽量保留现有配置**：用户提供 AccessKey 后，使用 `lovrabet auth login --access-key <ACCESS_KEY>`
-- **还没有 AK，需要先自助创建**：Agent 可先执行 `lovrabet auth login --non-interactive` 获取无打扰提示，把命令根据当前 `userDomain` 返回的创建地址发给用户；用户把 AccessKey 发给 Agent 后，再执行 `lovrabet auth login --access-key <ACCESS_KEY>`
+- **还没有 AK，需要先自助创建**：Agent 可先执行 `lovrabet auth login --non-interactive` 获取无打扰提示，把命令返回的创建地址发给用户；用户把 AccessKey 发给 Agent 后，再执行 `lovrabet auth login --access-key <ACCESS_KEY>`
 - **想确认当前 AK 对应的是哪个用户**：使用 `lovrabet auth info`
 - **凡是后续命令需要“当前登录用户身份信息”**：统一先执行 `lovrabet auth info` 获取，不要猜当前 AK 对应的人
 - **修改节点或 Domain**：使用 `lovrabet config init` 重建连接配置，或使用 `config set/delete` 精确修改；`auth login` 不负责节点配置
@@ -81,7 +88,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 - **不要擅自加 `--global` 或修改本地配置** — 见上文「本地配置原则」；仅在用户明确要求或文档说明的场景使用配置写命令。
 - **不要主动创建工作目录配置** — 即使连续多次在同一目录使用同一个 `--app` / `--appcode`，也只能提醒用户是否要写入当前目录 `.lovrabet.json`；必须得到用户明确同意后，才可执行 `workspace init/use`。
 - **不要回显或记录真实凭证** — 如果用户提供 AccessKey，只用于本次认证命令；不要在最终答复、日志、文档片段或排障输出里展示真实值。
-- **禁止通过修改配置文件提升权限** — 不得为了完成任务而修改 `.lovrabet.json`、环境变量或缓存内容来抬高 `riskLevel`、切换到并非用户明确授权的 `accessKey`、伪造 `defaultApp` / `appcode` 或连接路由，或借此突破当前权限边界。权限不足时，应明确说明限制，并要求用户提供合法的目标应用、凭证或确认范围。
+- **禁止通过修改配置文件提升权限** — 不得为了完成任务而修改 `.lovrabet.json`、环境变量或缓存内容来抬高 `riskLevel`、切换到并非用户明确授权的 `accessKey`、伪造 `defaultApp` / `appcode` 或连接路由，或借此突破当前权限边界。权限不足时，说明目标应用与受阻操作，引导向管理员申请相应权限；保留原任务，授权后用当前账号重新核验，不索要明文凭证或代为提权。
 - **不要访问未发布应用的数据** — `app list` 默认只展示已发布应用；即使通过 `app list --include-unpublished` 或缓存看到未发布应用，也不要把它作为 `dataset` / `data` / `sql` / `bff` 的目标。
 - **不要臆测当前登录用户** — 只要任务依赖“当前是谁在登录 / 当前 AK 属于谁”，先执行 `lovrabet auth info`，再继续判断应用、权限或数据可见性。
 - **运行态业务发现与实现资产隔离** — 运行态发现业务能力，不枚举实现资产。简单基础事实查询优先通过已治理 Dataset 的字段、关联和只读操作回答；稳定规则由业务 Skill 或可信 Service Tree 绑定到已发布入口。未绑定的 Custom SQL/Backend Function 实现资产不进入运行态候选。
@@ -234,6 +241,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 | **bff** | `detail` | 查看 Backend Function 详情 | read | AK |
 | **bff** | `exec` | 执行 Backend Function | read | AK |
 | **notification** | `config-list` | 查询当前应用的应用级通知渠道配置和 configCode | read | AK |
+| **metric** | `list` / `detail` / `exec` | 发现应用指标摘要、按名称读取所属应用的指标，预演参数、执行 SQL/BFF 并原样返回结果 | read | AK |
 | **app-config** | `get` | 按 key 获取当前应用的运行态 app-config value | read | AK |
 | **user-account** | `bind` | 按 provider 绑定当前 AccessKey 所属用户的外部账号 | write | AK |
 | **personal-bff** | `list` | 查看当前用户 Personal Backend Function | read | AK |
@@ -255,7 +263,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 | **schedule** | `detail` | 查看定时任务详情 | read | AK |
 | **schedule** | `run` | 立即触发一次 Task（需确认） | high-risk-write | AK |
 | **schedule** | `delete` | 删除计划并停止未来触发（需确认） | high-risk-write | AK |
-| **issue** | `report` | 提交问题日志，使用当前身份，应用可选 | write | [问题上报](references/lovrabet-issue-report.md) |
+| **issue** | `report` | 不修改业务数据；经用户明确同意，正式提交会以当前身份向平台发送问题日志，应用可选 | read | [问题上报](references/lovrabet-issue-report.md) |
 | **logs** | `show` | 查看命令执行历史 | read | 本地 |
 
 ## 意图 → 命令索引
@@ -303,7 +311,7 @@ npm 包会自动安装同版本 Built-in Skill。若 `lovrabet doctor` 报告缺
 
 ### CLI 更新
 
-`lovrabet update` 只查询 npm package 的 dist-tags，不依赖 CDN 文件。默认等价于 `--latest`；`--beta` 使用 npm `beta` dist-tag；`--version <version>` 安装指定 semver。CLI 与 Built-in Skill 一体升级，不提供拆分升级选项；升级后由当前进程验证新版 npm 包的安装结果，同版本检查则直接从当前包内修复。
+`lovrabet update` 只查询 npm package 的 dist-tags，不依赖 CDN 文件。默认等价于 `--latest`；`--beta` 使用 npm `beta` dist-tag；`--version <version>` 安装指定 semver。CLI 与 Built-in Skill 一体升级，不提供拆分升级选项；升级后启动新版 CLI 的显式安装命令并验证 Skill 版本及内容摘要，同版本检查则直接从当前包内修复。
 
 开源二开配置集中在项目代码的 `src/constant/product.ts`，`src/constant/distribution.ts` 只做兼容导出：
 

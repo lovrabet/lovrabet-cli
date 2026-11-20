@@ -15,7 +15,7 @@ lovrabet auth login --global
 - 默认写入全局配置 `~/.lovrabet.json`
 - 只保存所选作用域的顶层用户 accessKey；项目配置或显式环境变量可能覆盖全局存储值
 - 兼容场景可用 `--project` 写入当前目录本地配置；常规使用不需要
-- 交互模式下，不传 `--access-key` 会提示输入 AK，并给出当前 `userDomain` 下的 `/user/ak` 自助创建地址
+- 交互模式下，不传 `--access-key` 会提示输入 AK，并给出用户中心页面 `/user/ak` 自助创建地址
 - `--non-interactive` 表示无打扰模式：不进入 stdin prompt；如果缺少 AccessKey，会立即提示创建链接和 `--access-key` 命令
 - `auth login` 不支持 `--yes`；`--yes` 只用于高风险写操作的确认跳过
 - 也可以直接显式传入：`lovrabet auth login --access-key <ACCESS_KEY>`
@@ -28,7 +28,7 @@ lovrabet auth login --global
 
 **推荐顺序**：
 
-1. Agent 先执行 `lovrabet auth login --non-interactive`，把命令根据当前 `userDomain` 返回的创建地址发给用户
+1. Agent 先执行 `lovrabet auth login --non-interactive`，把命令返回的创建地址发给用户
 2. 用户创建或复制 AccessKey，并提供给 Agent
 3. Agent 执行 `lovrabet auth login --access-key <ACCESS_KEY>`
 4. 再执行 `lovrabet auth info`，确认当前 AK 对应的是预期用户
@@ -119,3 +119,7 @@ X-User-AK: <redacted>
 
 - [SKILL.md](../SKILL.md)
 - [lovrabet-config.md](lovrabet-config.md)
+
+### 身份与业务范围
+
+`auth status` 的 configured 表示有效配置中存在 AK，不表示已远程验证身份或应用权限。`doctor` 用于核对实际目标与凭证来源；选择应用不会替换当前凭证。业务参数中的企业或应用筛选不授予权限，不从这些值推断当前用户所属企业。

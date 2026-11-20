@@ -25,7 +25,7 @@ lovrabet skill install --project
 
 ## CLI Built-in Skill
 
-`lovrabet skill install` 仅安装当前应用的业务 Skill。CLI Built-in Skill 已包含在当前 npm 包内，并在安装或升级 CLI 时自动安装。诊断显示缺失、版本不一致或内容不一致时，使用当前包内的确定版本修复：
+`lovrabet skill install` 仅安装当前应用的业务 Skill。CLI Built-in Skill 已包含在当前 npm 包内，首次 npm 安装后须显式安装；`lovrabet update` 会显式调用新版安装器并验证同版本内容。诊断显示缺失、版本不一致或内容不一致时，使用当前包内的确定版本修复：
 
 ```bash
 lovrabet cli-skill install

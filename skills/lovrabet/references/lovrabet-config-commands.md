@@ -28,7 +28,7 @@ lovrabet config init --runtime-domain https://runtime.customer.example.com
 
 ### 可选 Domain 覆盖值
 
-支持 `userDomain`、`apiDomain`、`runtimeDomain`、`skillDomain`、`kbServiceDomain` 和 `harnessDomain`，均可省略。没有配置的字段使用当前地区及环境的内置地址，独立部署也遵循同一规则。Personal KB 管理和搜索使用 `kbServiceDomain`，定时接口使用 `harnessDomain`。
+支持 `userCenterDomain`（浏览器页面）、`userDomain`（认证 API）、`apiDomain`、`runtimeDomain`、`skillDomain`、`kbServiceDomain` 和 `harnessDomain`，均可省略。没有配置的字段使用当前地区及环境的内置地址，独立部署也遵循同一规则。Personal KB 管理和搜索使用 `kbServiceDomain`，定时接口使用 `harnessDomain`。
 
 版本化企业路由清单可只包含需要覆盖的字段，`domains` 也可以为空：
 
@@ -42,9 +42,9 @@ lovrabet config init --runtime-domain https://runtime.customer.example.com
 }
 ```
 
-其他工具可能要求完整清单中的其他字段；Lovrabet CLI 仅校验并保存自己使用的六个 Domain，忽略其他消费者的 Domain、CDN 或数据库字段。各值可写为 HTTPS 字符串，或带 `lovrabet-cli` / `default` 的对象；当前消费者专属值优先；该值未提供或为 null 时使用 `default`。字段省略时使用内置默认值；字段已提供但最终没有可用的消费者地址，或地址为空、格式错误时会报错。
+其他工具可能要求完整清单中的其他字段；Lovrabet CLI 仅校验并保存自己使用的 Domain，忽略其他消费者的 Domain、CDN 或数据库字段。各值可写为 HTTPS 字符串，或带 `lovrabet-cli` / `default` 的对象；当前消费者专属值优先；该值未提供或为 null 时使用 `default`。字段省略时使用内置默认值；字段已提供但最终没有可用的消费者地址，或地址为空、格式错误时会报错。
 
-支持扁平 JSON 配置。也可使用 `--user-domain`、`--api-domain`、`--runtime-domain`、`--skill-domain`、`--kb-service-domain`、`--harness-domain`。显式 flag 覆盖扁平文件的同名字段；版本化企业清单不能叠加单独的 Domain flags，也不能搭配 `--region`。
+支持扁平 JSON 配置。也可使用 `--user-center-domain`、`--user-domain`、`--api-domain`、`--runtime-domain`、`--skill-domain`、`--kb-service-domain`、`--harness-domain`。显式 flag 覆盖扁平文件的同名字段；版本化企业清单中的服务地址须在清单内配置。可同时传入 `--user-center-domain`，它作为 CLI 顶层页面配置保存。
 
 企业清单保存为 `routing` 对象。初始化只修改全局配置，项目配置仍参与运行时解析，具体顺序见 [配置解析优先级](lovrabet-config.md#解析优先级)。初始化后可用 `lovrabet doctor` 核对实际生效的 Domain。
 

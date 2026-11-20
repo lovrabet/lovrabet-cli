@@ -105,6 +105,8 @@ lovrabet data filter --code <datasetCode> --params '{"where":{"status":{"$eq":"a
 - 需要确认 SDK 参数结构，而不只是字段名
 - 要把数据访问方式写进可交付源码或文档
 
+统计或报告涉及正式业务口径时，先读 [指标查询与分析](metric-consumption.md)；不能用原始字段或当前页重算替代可信指标。
+
 ## Dataset 回退准入
 
 Dataset Detail + Instant API 是简单低风险事实查询的直接路径，例如读取单条记录、列举明细或做不承载业务判定的基础统计；这类请求不强制查询 KB，也不需要包装成 Custom SQL 或 Backend Function。

@@ -19,8 +19,8 @@ lovrabet update --version <version>
 
 ## 行为
 
-- npm 安装包携带同版本 Built-in Skill，安装阶段自动完成 Agent Skill 安装。
-- CLI 升级成功后，旧进程只验证目标版本 Skill 是否已安装，不使用旧包内容重复覆盖。
+- npm 安装包携带同版本 Built-in Skill，首次 npm 安装后须显式执行 `lovrabet cli-skill install`。
+- CLI 包升级后，按绝对路径启动新版 CLI 的 `cli-skill install`，验证新包版本及 Skill 内容摘要，通过后才报告成功。
 - CLI 已经是目标版本时，命令从当前 npm 包内检查并修复 Built-in Skill。
 - Skill 缺失、版本不一致或验证失败时，命令返回失败并提示 `lovrabet cli-skill install`；不要把“CLI 包已更新”误报为完整成功。
 - `lovrabet skill install` 仍只管理当前应用的业务 Skill，与 Built-in Skill 生命周期相互独立。
@@ -28,7 +28,9 @@ lovrabet update --version <version>
 手动复现或修复 npm 安装问题时，可以使用：
 
 ```bash
-npm install -g @lovrabet/lovrabet-cli@<version>
-lovrabet doctor
+npm install -g @lovrabet/lovrabet-cli@<version> --ignore-scripts
 lovrabet cli-skill install
+lovrabet doctor
 ```
+
+Skill 安装失败时 CLI 包可能已更新，不自动回滚；修复成功前不能报告完整升级成功。

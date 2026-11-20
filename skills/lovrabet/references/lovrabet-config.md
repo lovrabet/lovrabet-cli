@@ -73,7 +73,8 @@
 | `riskLevel` | string | `write` | 允许执行的最高风险等级 |
 | `defaultApp` | string | — | 应用名称绑定 |
 | `region` | string | `cn` | 当前开放的官方节点：`cn` / `id` / `global`；默认 `cn` 可省略 |
-| `userDomain` | string | 节点内置值 | User 服务 HTTPS origin 覆盖 |
+| `userDomain` | string | 节点内置值 | 用户中心 API 的 HTTPS origin |
+| `userCenterDomain` | string | 当前地区与环境的官方页面 | 企业用户中心浏览器页面的 HTTPS origin |
 | `apiDomain` | string | 节点内置值 | 平台 API HTTPS origin 覆盖 |
 | `runtimeDomain` | string | 节点内置值 | Runtime HTTPS origin 覆盖 |
 | `skillDomain` | string | 节点默认 | SkillHub HTTPS origin 覆盖 |
@@ -88,7 +89,7 @@
 
 连接配置先合并再解析：项目配置覆盖全局同名字段；`routing` 对象整体替换，不逐项合并。
 
-- 合并后存在 `routing` 时，`routing` 整体优先于顶层 Domain，缺省服务使用内置值，不回退到顶层 Domain。
+- 合并后存在 `routing` 时，服务地址取自 `routing`，缺省服务使用内置值。浏览器页面独立读取顶层 `userCenterDomain`。
 - 没有 `routing` 时，使用顶层显式 Domain；API 地址依次读取 `apiDomain → host → 内置值`，SkillHub 地址依次读取 `skillDomain → skillHubDomain → agentDomain → platformDomain → 内置值`。这些字段为空字符串或 null 时读取下一项。
 - `kbServiceDomain` 仅使用自身的非空字符串或内置值；`harnessDomain` 未配置时使用内置值，配置时必须为非空 HTTPS origin，不含凭据、路径、查询参数或片段。两者均不借用其他 Domain 或别名。
 - 内置值由合并后的地区和连接设置决定；项目与全局均未配置 `region` 时使用 `cn`。请求失败不会切换地址。

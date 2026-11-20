@@ -26,6 +26,8 @@ Detail 成功只证明能力存在，不代表可以自动执行。副作用、�
 
 运行态只消费已发布且契约可信的业务能力，当前类型包括但不限于已治理 Dataset / Instant API（含 `filter`、`getOne`、`aggregate`）、Custom SQL、Backend Function 和已有审批任务。审批任务通过 `approval` 命令查询或办理，具体边界见 [审批流运行态办理](../references/lovrabet-approval-workflow.md)。未暴露可信入口、输入输出或副作用契约的能力不猜测命令，只对受影响范围输出“不判定”。
 
+统计指标或生成分析报告时，同时按 [指标查询与分析](metric-consumption.md) 核对统计对象、分母、质量与归因证据；SQL/BFF 执行成功不等于业务口径正确。
+
 ## Custom SQL 工作流
 
 1. 按 [app-resolution.md](app-resolution.md) 确认目标 AppCode；下列 `<appcode>` 均指同一目标

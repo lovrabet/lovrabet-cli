@@ -2,10 +2,13 @@
 
 将问题描述作为日志提交，供后续排查。使用当前 AK 身份，不要求绑定应用。
 
+用户要求排查或修复问题，不等于同意上报。未获明确同意时，如需准备报告，只用 `--dry-run` 预览。若建议发送，先向用户说明拟发送的标题、内容摘要，以及日志会以当前身份发给平台。用户已明确要求上报且内容范围清楚时，无需重复确认。
+
 ## 使用方式
 
 ```bash
-lovrabet issue report --title "Dataset query failed" --description "Observed error and reproduction steps" --dry-run --format json
+lovrabet issue report --title "Dataset query failed" --description-file ./issue.md --dry-run --format json
+# 用户已明确同意发送这份报告后：
 lovrabet issue report --title "Dataset query failed" --description-file ./issue.md --format compress
 ```
 

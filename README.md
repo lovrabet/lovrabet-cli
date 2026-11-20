@@ -28,9 +28,15 @@ lovrabet --version
 lovrabet --help
 ```
 
-### 2. 验证 CLI Built-in Skill
+### 2. 安装 CLI Built-in Skill
 
-CLI npm 包会自动安装同版本 Built-in Skill。安装后运行：
+显式安装当前 CLI 包内的同版本 Built-in Skill，安装目录由 Skills CLI 决定：
+
+```bash
+lovrabet cli-skill install
+```
+
+可选：运行诊断，检查 CLI 与内置 Skill 的版本及状态：
 
 ```bash
 lovrabet doctor
@@ -77,8 +83,11 @@ Lovrabet CLI 主要覆盖这些运行态场景：
 
 ## 推荐上手顺序
 
+其中 `lovrabet doctor` 为可选诊断。
+
 ```bash
 npm install -g @lovrabet/lovrabet-cli@latest
+lovrabet cli-skill install
 lovrabet doctor
 lovrabet auth login
 lovrabet app list
