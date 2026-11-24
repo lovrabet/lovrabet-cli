@@ -1,7 +1,7 @@
 ---
 name: lovrabet-report-generation
 displayName: 业务报告与分析
-version: 2.4.0
+version: 2.4.1
 description: "Use when 用户需要日报、周报、经营汇总、指标比较、综合分析，修改已有报告，或根据已提供的上下文补齐报告。完整匹配的企业业务 Skill 可直接使用；单值或身份查询不强制生成报告。不用于开发发布指标或修改业务数据。"
 example: "帮我整理昨天各门店的经营情况。"
 metadata:
